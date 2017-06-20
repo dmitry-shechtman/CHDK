@@ -673,43 +673,56 @@ int submenu_sort(const void* v1, const void* v2)
     return strcmp(lang_str(mi1->text), lang_str(mi2->text));
 }
 
-static CMenuItem* create_module_menu(int mtype, char symbol)
+#define MODULE_COUNTS_LENGTH 4
+
+static int module_counts[MODULE_COUNTS_LENGTH];
+
+static void init_module_counts()
 {
     DIR             *d;
     struct dirent   *de;
-    int             mcnt = 0;
     ModuleInfo      mi;
-    char            modName[33];
-    char            *nm;
+    int             mtype;
 
-    // Open directory & count # of modules matching mtype
-    d = opendir("A/CHDK/MODULES");
+    memset(module_counts, 0, sizeof(module_counts));
 
-    if (d)
+    // Open directory & count # of modules
+    if ((d = opendir("A/CHDK/MODULES")))
     {
         while ((de = readdir(d)))
         {
             if (de->d_name[0] != 0xE5 && strcmp(de->d_name, ".") && strcmp(de->d_name, "..") && strcmp(de->d_name, "CFG"))
             {
                 get_module_info(de->d_name, &mi, 0, 0);
-                if ((mi.moduleType & MTYPE_MASK) == mtype)
-                    mcnt++;
+                mtype = mi.moduleType & MTYPE_MASK;
+                if (mtype > 0 && mtype < MODULE_COUNTS_LENGTH)
+                    module_counts[mtype]++;
             }
         }
 
         closedir(d);
     }
+}
+
+static CMenuItem* create_module_menu(int mtype, char symbol)
+{
+    DIR             *d;
+    struct dirent   *de;
+    ModuleInfo      mi;
+    char            modName[33];
+    char            *nm;
+    int             mcnt = 0;
+
+    if (mtype <= 0 || mtype >= MODULE_COUNTS_LENGTH)
+        return 0;
 
     // Allocate memory for menu
-    CMenuItem *submenu = malloc((mcnt+2) * sizeof(CMenuItem));
-    memset(submenu, 0, (mcnt+2) * sizeof(CMenuItem));
+    CMenuItem *submenu = malloc((module_counts[mtype]+2) * sizeof(CMenuItem));
+    memset(submenu, 0, (module_counts[mtype] + 2) * sizeof(CMenuItem));
 
-    // Re-open directory & create game menu
-    d = opendir("A/CHDK/MODULES");
-
-    if (d)
+    // Open directory & create Game/Tools menu
+    if ((d = opendir("A/CHDK/MODULES")))
     {
-        mcnt = 0;
         while ((de = readdir(d)))
         {
             if (de->d_name[0] != 0xE5 && strcmp(de->d_name, ".") && strcmp(de->d_name, "..") && strcmp(de->d_name, "CFG"))
@@ -2374,6 +2387,7 @@ void gui_init()
     }
 
     init_splash();
+    init_module_counts();
 
     draw_init();
 
