@@ -777,16 +777,6 @@ static void init_module_menus()
     }
 }
 
-static void gui_games_menu(int arg)
-{
-    gui_activate_sub_menu(&module_menus[MTYPE_GAME]);
-}
-
-static void gui_tools_menu(int arg)
-{
-    gui_activate_sub_menu(&module_menus[MTYPE_TOOL]);
-}
-
 //-------------------------------------------------------------------
 
 static void gui_menuproc_mkbootdisk(int arg)
@@ -978,8 +968,8 @@ static CMenuItem misc_submenu_items[] = {
     MENU_ITEM   (0x35,LANG_MENU_MISC_FILE_BROWSER,          MENUITEM_PROC,                  gui_draw_fselect,                   0 ),
     MENU_ITEM   (0x28,LANG_MENU_MODULES,                    MENUITEM_SUBMENU,               &module_submenu,                    0 ),
     MENU_ITEM   (0x37,LANG_MENU_MISC_TEXT_READER,           MENUITEM_SUBMENU,               &reader_submenu,                    0 ),
-    MENU_ITEM   (0x38,LANG_MENU_MISC_GAMES,                 MENUITEM_SUBMENU_PROC,          gui_games_menu,                     0 ),
-    MENU_ITEM   (0x28,LANG_MENU_MISC_TOOLS,                 MENUITEM_SUBMENU_PROC,          gui_tools_menu,                     0 ),
+    MENU_ITEM   (0x38,LANG_MENU_MISC_GAMES,                 MENUITEM_SUBMENU,               &module_menus[MTYPE_GAME],                     0 ),
+    MENU_ITEM   (0x28,LANG_MENU_MISC_TOOLS,                 MENUITEM_SUBMENU,               &module_menus[MTYPE_TOOL],                     0 ),
     MENU_ITEM   (0x28,LANG_MENU_CONSOLE_SETTINGS,           MENUITEM_SUBMENU,               &console_settings_submenu, 0 ),
 #if CAM_SWIVEL_SCREEN
     MENU_ITEM   (0x5c,LANG_MENU_MISC_FLASHLIGHT,            MENUITEM_BOOL,                  &conf.flashlight, 0 ),
