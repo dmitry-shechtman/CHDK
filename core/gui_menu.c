@@ -214,6 +214,10 @@ static void gui_menu_set_curr_menu(CMenu *menu_ptr, int top_item, int curr_item)
     curr_menu = menu_ptr;
     gui_menu_top_item = top_item;
     gui_menu_curr_item = curr_item;
+    while (!validrow(gui_menu_curr_item))
+    {
+        ++gui_menu_curr_item;
+    }
 }
 
 CMenu* get_curr_menu()
@@ -252,23 +256,25 @@ void gui_menu_init(CMenu *menu_ptr) {
 }
 
 //-------------------------------------------------------------------
+static int validrow(int n)
+{
+    return isVisible(n);
+}
+
+static int gui_menu_disp_rows()
+{
+    int n, m;
+    // Count the number of visible rows in current menu
+    for(n = 0, m = 0; curr_menu->menu[n].text; n++)
+        if (validrow(n)) m++;
+    return m;
+}
+
 static int gui_menu_rows()
 {
     int n;
     // Count the number of rows in current menu
     for(n = 0; curr_menu->menu[n].text; n++);
-    return n;
-}
-
-//-------------------------------------------------------------------
-static int gui_menu_visible_rows()
-{
-    int n = 0;
-    int i;
-    // Count the number of visible rows in current menu
-    for (i = 0; curr_menu->menu[i].text; i++)
-        if (isVisible(i))
-            ++n;
     return n;
 }
 
@@ -775,7 +781,7 @@ int gui_menu_kbd_process() {
 // Draw menu scroll bar if needed, and title bar
 void gui_menu_draw_initial()
 { 
-    count = gui_menu_visible_rows();
+    count = gui_menu_disp_rows();
 
     y = (camera_screen.height - ((num_lines - 1) * rbf_font_height())) >> 1;
     if (count > num_lines)
