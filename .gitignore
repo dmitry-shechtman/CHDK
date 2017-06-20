@@ -11,6 +11,7 @@ bin/
 CHDK/DATA/logo.dat
 CHDK/LUALIB/GEN/
 CHDK/MODULES/
+doc/camnotes.txt
 doc/readme.txt
 lib/armutil/.o/
 lib/core/.o/
