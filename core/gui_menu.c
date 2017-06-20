@@ -550,12 +550,28 @@ static void gui_menu_updown(int increment)
     }
 }
 
+static int gui_menu_touch_get_item(int ty)
+{
+    int r, i;
+    for (r = 0, i = 0; curr_menu->menu[r].text; r++)
+    {
+        if (isVisible(r))
+        {
+            if (i == ((ty - y) / rbf_font_height()) + gui_menu_top_item)
+                return r;
+            else
+                i++;
+        }
+    }
+    return gui_menu_rows();
+}
+
 static int gui_menu_touch_handler(int tx, int ty)
 {
     int h = ((count > num_lines) ? num_lines : count) * rbf_font_height();
     if ((tx >= x) && (ty >= y) && (tx < (x + w)) && (ty < (y + h)))
     {
-        int r = ((ty - y) / rbf_font_height()) + gui_menu_top_item;
+        int r = gui_menu_touch_get_item(ty);
         if (!isText(r))
         {
             if (gui_menu_curr_item != r)
