@@ -196,6 +196,19 @@ static int decrement_factor()
     return 0;
 }
 
+static int isVisible(int curr_item)
+{
+    if (!curr_menu->menu[curr_item].mod_id)
+    {
+        return 1;
+    }
+    if (module_counts[(int)curr_menu->menu[curr_item].mod_id])
+    {
+        return 1;
+    }
+    return 0;
+}
+
 //-------------------------------------------------------------------
 static void gui_menu_set_curr_menu(CMenu *menu_ptr, int top_item, int curr_item) {
     curr_menu = menu_ptr;
@@ -244,6 +257,18 @@ static int gui_menu_rows()
     int n;
     // Count the number of rows in current menu
     for(n = 0; curr_menu->menu[n].text; n++);
+    return n;
+}
+
+//-------------------------------------------------------------------
+static int gui_menu_visible_rows()
+{
+    int n = 0;
+    int i;
+    // Count the number of visible rows in current menu
+    for (i = 0; curr_menu->menu[i].text; i++)
+        if (isVisible(i))
+            ++n;
     return n;
 }
 
@@ -492,6 +517,10 @@ static void gui_menu_updown(int increment)
             {
                 gui_menu_curr_item = gui_menu_top_item = 0;
             }
+            else if (!isVisible(gui_menu_curr_item))
+            {
+                continue;
+            }
             else if (increment == 1)                                        // Still in menu, if moving down adjust scroll if needed
             {
                 if (gui_menu_curr_item - gui_menu_top_item >= num_lines - 1)
@@ -508,7 +537,7 @@ static void gui_menu_updown(int increment)
 
             // Check in case scroll moved off top of menu
             if (gui_menu_top_item < 0) gui_menu_top_item = 0;
-        } while (isText(gui_menu_curr_item));
+        } while (!isVisible(gui_menu_curr_item) || isText(gui_menu_curr_item));
 
         // Reset amount to increment integer values by
         int_incr = 1;
@@ -730,7 +759,7 @@ int gui_menu_kbd_process() {
 // Draw menu scroll bar if needed, and title bar
 void gui_menu_draw_initial()
 { 
-    count = gui_menu_rows();
+    count = gui_menu_visible_rows();
 
     y = (camera_screen.height - ((num_lines - 1) * rbf_font_height())) >> 1;
     if (count > num_lines)
@@ -966,6 +995,13 @@ void gui_menu_draw(int enforce_redraw)
 
         for (imenu=gui_menu_top_item, i=0, yy=y; curr_menu->menu[imenu].text && i<num_lines; ++imenu, ++i, yy+=rbf_font_height())
         {
+            if (!isVisible(imenu))
+            {
+                --i;
+                yy -= rbf_font_height();
+                continue;
+            }
+
             cl = user_color((gui_menu_curr_item==imenu) ? conf.menu_cursor_color : conf.menu_color);
             /*
             * When cursor is over a symbol, force symbol background color to be the menu cursor color but

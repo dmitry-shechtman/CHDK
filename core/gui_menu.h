@@ -59,6 +59,7 @@ typedef struct {
     int                 arg;        // additional argument
                                     //     by default type is controled by _ARG_MASK and by _F_MINMAX
                                     //     for ENUM2 - pointer to string list
+    char                mod_id;     // module id
 } CMenuItem;
 
 typedef struct {
@@ -68,9 +69,10 @@ typedef struct {
 } CMenu;
 
 // Menu item constructor macros
-#define MENU_ITEM(sym, txt, typ, val, arg)  { (char)sym, 0, (short)typ, (int)txt, (int*)val, (int)arg }
-#define MENU_ENUM2(sym, txt, val, arg)      { (char)sym, sizeof(arg)/sizeof(arg[0]), MENUITEM_ENUM2, (int)txt, (int*)val, (int)arg }
-#define MENU_ENUM2a(sym, txt, val, arg, num){ (char)sym, (char)num, MENUITEM_ENUM2, (int)txt, (int*)val, (int)arg }
+#define MENU_ITEM(sym, txt, typ, val, arg)  { (char)sym, 0, (short)typ, (int)txt, (int*)val, (int)arg, 0 }
+#define MENU_ITEM_C(sym, txt, typ, val, arg, mod_id)  { (char)sym, 0, (short)typ, (int)txt, (int*)val, (int)arg, mod_id }
+#define MENU_ENUM2(sym, txt, val, arg)      { (char)sym, sizeof(arg)/sizeof(arg[0]), MENUITEM_ENUM2, (int)txt, (int*)val, (int)arg, 0 }
+#define MENU_ENUM2a(sym, txt, val, arg, num){ (char)sym, (char)num, MENUITEM_ENUM2, (int)txt, (int*)val, (int)arg, 0 }
 
 //-------------------------------------------------------------------
 extern void gui_menu_init(CMenu *menu_ptr);
@@ -95,6 +97,11 @@ extern gui_handler menuGuiHandler;
 extern  CMenu   root_menu;									// defined in gui.c
 
 extern CMenuItem* find_menu_item(CMenu *curr_menu, int itemid );
+
+//-------------------------------------------------------------------
+#define MODULE_TYPE_COUNT 5
+
+extern int module_counts[MODULE_TYPE_COUNT]; // defined in gui.c
 
 //-------------------------------------------------------------------
 #endif

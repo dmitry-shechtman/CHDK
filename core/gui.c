@@ -670,9 +670,8 @@ int submenu_sort(const void* v1, const void* v2)
     return strcmp(lang_str(mi1->text), lang_str(mi2->text));
 }
 
-#define MODULE_TYPE_COUNT 5
+int module_counts[MODULE_TYPE_COUNT];
 
-static int module_counts[MODULE_TYPE_COUNT];
 static CMenuItem* module_submenus[MODULE_TYPE_COUNT];
 static CMenu module_menus[MODULE_TYPE_COUNT] = {
     {}, //MTYPE_UNKNOWN
@@ -968,8 +967,8 @@ static CMenuItem misc_submenu_items[] = {
     MENU_ITEM   (0x35,LANG_MENU_MISC_FILE_BROWSER,          MENUITEM_PROC,                  gui_draw_fselect,                   0 ),
     MENU_ITEM   (0x28,LANG_MENU_MODULES,                    MENUITEM_SUBMENU,               &module_submenu,                    0 ),
     MENU_ITEM   (0x37,LANG_MENU_MISC_TEXT_READER,           MENUITEM_SUBMENU,               &reader_submenu,                    0 ),
-    MENU_ITEM   (0x38,LANG_MENU_MISC_GAMES,                 MENUITEM_SUBMENU,               &module_menus[MTYPE_GAME],                     0 ),
-    MENU_ITEM   (0x28,LANG_MENU_MISC_TOOLS,                 MENUITEM_SUBMENU,               &module_menus[MTYPE_TOOL],                     0 ),
+    MENU_ITEM_C (0x38,LANG_MENU_MISC_GAMES,                 MENUITEM_SUBMENU,               &module_menus[MTYPE_GAME],          0, MTYPE_GAME ),
+    MENU_ITEM_C (0x28,LANG_MENU_MISC_TOOLS,                 MENUITEM_SUBMENU,               &module_menus[MTYPE_TOOL],          0, MTYPE_TOOL ),
     MENU_ITEM   (0x28,LANG_MENU_CONSOLE_SETTINGS,           MENUITEM_SUBMENU,               &console_settings_submenu, 0 ),
 #if CAM_SWIVEL_SCREEN
     MENU_ITEM   (0x5c,LANG_MENU_MISC_FLASHLIGHT,            MENUITEM_BOOL,                  &conf.flashlight, 0 ),
@@ -2155,7 +2154,7 @@ static CMenuItem root_menu_items[] = {
     MENU_ITEM   (0x7f,LANG_MENU_EDGE_OVERLAY,               MENUITEM_SUBMENU,   &edge_overlay_submenu, 0 ),
     MENU_ITEM   (0x25,LANG_MENU_MAIN_HISTO_PARAM,           MENUITEM_SUBMENU,   &histo_submenu, 0 ),
     MENU_ITEM   (0x26,LANG_MENU_MAIN_ZEBRA_PARAM,           MENUITEM_SUBMENU,   &zebra_submenu,     0 ),
-    MENU_ITEM   (0x27,LANG_MENU_MAIN_SCRIPT_PARAM,          MENUITEM_SUBMENU,   &script_submenu,    0 ),
+    MENU_ITEM_C (0x27,LANG_MENU_MAIN_SCRIPT_PARAM,          MENUITEM_SUBMENU,   &script_submenu,    0, MTYPE_SCRIPT_LANG ),
     MENU_ITEM   (0x22,LANG_MENU_CHDK_SETTINGS,              MENUITEM_SUBMENU,   &chdk_settings_menu, 0 ),
     MENU_ITEM   (0x29,LANG_MENU_MAIN_MISC,                  MENUITEM_SUBMENU,   &misc_submenu,      0 ),
     MENU_ITEM   (0x2e,LANG_MENU_USER_MENU,  	    	    MENUITEM_SUBMENU,   &user_submenu, 0 ),
