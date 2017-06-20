@@ -74,7 +74,7 @@ static int validrow(int n)
 static int gui_menu_disp_rows()
 {
     int n, m;
-    // Count the numer of rows in current menu
+    // Count the number of visible rows in current menu
     for(n = 0, m = 0; curr_menu->menu[n].text; n++)
         if (validrow(n)) m++;
     return m;
@@ -83,7 +83,7 @@ static int gui_menu_disp_rows()
 static int gui_menu_rows()
 {
     int n;
-    // Count the numer of rows in current menu
+    // Count the number of rows in current menu
     for(n = 0; curr_menu->menu[n].text; n++);
     return n;
 }
