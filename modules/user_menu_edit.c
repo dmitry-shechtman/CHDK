@@ -44,6 +44,19 @@ static int          len_bool, len_space;
 static int running = 0;
 static gui_handler *gui_mode_old; // stored previous gui_mode
 
+static int isVisible(int n)
+{
+    if (!curr_menu->menu[n].mod_id)
+    {
+        return 1;
+    }
+    if (module_counts[(int)curr_menu->menu[n].mod_id])
+    {
+        return 1;
+    }
+    return 0;
+}
+
 //-------------------------------------------------------------------
 static int validrow(int n)
 {
@@ -52,7 +65,9 @@ static int validrow(int n)
         ((curr_menu->menu[n].type & MENUITEM_TEXT) != MENUITEM_TEXT) &&
         (curr_menu->menu[n].text != LANG_MENU_USER_MENU) &&
         (curr_menu->menu[n].text != LANG_MENU_MAIN_TITLE))
-        return 1;
+    {
+        return isVisible(n);
+    }
     return 0;
 }
 

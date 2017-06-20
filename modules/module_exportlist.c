@@ -41,6 +41,7 @@
             &recreview_hold
             &root_menu
             &user_submenu
+            &module_counts
 
             malloc
             free
