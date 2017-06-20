@@ -208,7 +208,7 @@ static void move_usermenu_item(int* cur_menu_item_indx, int dir)
     char *tbuff;
 
     src_index = *cur_menu_item_indx ;
-    dst_index = *cur_menu_item_indx + dir;    
+    dst_index = *cur_menu_item_indx + dir;
         
     // Move current user menu item up (dir = -1) or down (dir = 1)
     CMenuItem *items = (CMenuItem*)user_submenu.menu;
@@ -227,7 +227,7 @@ static void move_usermenu_item(int* cur_menu_item_indx, int dir)
     conf.user_menu_vars.items[dst_index].script_title = conf.user_menu_vars.items[src_index].script_title;    
     conf.user_menu_vars.items[src_index].script_title = tbuff;
         
-    *cur_menu_item_indx += dir;
+    *cur_menu_item_indx = dst_index;
 
     gui_menu_erase_and_redraw();
     camera_info.state.user_menu_has_changed = 1;
@@ -238,8 +238,12 @@ static void move_usermenu_item_up(int* cur_menu_item_indx)
     /*
      * Move entry up
      */
-    if (*cur_menu_item_indx > 1)
-        move_usermenu_item(cur_menu_item_indx, -1);
+    int dst_index = *cur_menu_item_indx;
+    do
+        --dst_index;
+    while (dst_index > 0 && !validrow(dst_index));
+    if (*cur_menu_item_indx > 0)
+        move_usermenu_item(cur_menu_item_indx, dst_index - *cur_menu_item_indx);
 }
 
 static void move_usermenu_item_down(int* cur_menu_item_indx)
@@ -248,11 +252,15 @@ static void move_usermenu_item_down(int* cur_menu_item_indx)
     if (*cur_menu_item_indx == 0)
         return;
 
+    int dst_index = *cur_menu_item_indx;
+    do
+        ++dst_index;
+    while (dst_index < USER_MENU_ITEMS && !validrow(dst_index));
     /*
      * Move entry down below next entry if next entry is not empty
      */
-    if((*cur_menu_item_indx < (USER_MENU_ITEMS)) && (user_submenu.menu[*cur_menu_item_indx +1].text))
-        move_usermenu_item(cur_menu_item_indx, 1);
+    if ((dst_index < (USER_MENU_ITEMS)) && (user_submenu.menu[dst_index].text))
+        move_usermenu_item(cur_menu_item_indx, dst_index - *cur_menu_item_indx);
 }
 
 static void add_extern_to_user_menu(const char* fname, char* title, char sym, short type, int* func)
