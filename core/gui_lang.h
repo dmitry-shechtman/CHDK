@@ -794,8 +794,12 @@
 #define LANG_MODULE_LUA                         665
 #define LANG_MODULE_MOTION_DETECT               666
 #define LANG_MODULE_POPUP_MENU                  667
+#define LANG_MODULE_RAW_OP                      668
+#define LANG_MODULE_SHOT_HISTO                  669
+#define LANG_MODULE_HEXBOX                      670
+#define LANG_MODULE_TEXTBOX                     671
 
-#define GUI_LANG_ITEMS                          667
+#define GUI_LANG_ITEMS                          671
 
 //-------------------------------------------------------------------
 extern void gui_lang_init();

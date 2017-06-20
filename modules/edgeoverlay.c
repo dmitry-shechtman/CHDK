@@ -950,7 +950,7 @@ ModuleInfo _module_info =
     ANY_CHDK_BRANCH, 0, OPT_ARCHITECTURE,			// Requirements of CHDK version
     ANY_PLATFORM_ALLOWED,		// Specify platform dependency
 
-    (int32_t)"Edge Overlay (dll)",
+    -LANG_MENU_EDGE_OVERLAY_TITLE,
     MTYPE_EXTENSION,
 
     &_libedgeovr.base,

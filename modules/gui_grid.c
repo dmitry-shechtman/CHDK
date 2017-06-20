@@ -231,7 +231,7 @@ ModuleInfo _module_info =
     ANY_CHDK_BRANCH, 0, OPT_ARCHITECTURE,			// Requirements of CHDK version
     ANY_PLATFORM_ALLOWED,		// Specify platform dependency
 
-    (int32_t)"Grids (dll)",
+    -LANG_MENU_GRID_TITLE,
     MTYPE_EXTENSION,            //Grid Display
 
     &_libgrids.base,

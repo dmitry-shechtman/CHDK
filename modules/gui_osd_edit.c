@@ -267,7 +267,7 @@ ModuleInfo _module_info =
     ANY_CHDK_BRANCH, 0, OPT_ARCHITECTURE,			// Requirements of CHDK version
     ANY_PLATFORM_ALLOWED,		// Specify platform dependency
 
-    (int32_t)"OSD Editor",
+    -LANG_MENU_OSD_LAYOUT_EDITOR,
     MTYPE_EXTENSION,
 
     &_librun.base,

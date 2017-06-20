@@ -6,6 +6,7 @@
 #include "viewport.h"
 #include "gui.h"
 #include "gui_draw.h"
+#include "gui_lang.h"
 #include "gui_osd.h"
 #include "shooting.h"
 #include "histogram.h"
@@ -515,7 +516,7 @@ ModuleInfo _module_info =
     ANY_CHDK_BRANCH, 0, OPT_ARCHITECTURE,			// Requirements of CHDK version
     ANY_PLATFORM_ALLOWED,		// Specify platform dependency
 
-    (int32_t)"Histogram Overlay (dll)",
+    -LANG_MENU_HISTO_TITLE,
     MTYPE_EXTENSION,
 
     &_libhisto.base,
