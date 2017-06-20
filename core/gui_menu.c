@@ -214,10 +214,6 @@ static void gui_menu_set_curr_menu(CMenu *menu_ptr, int top_item, int curr_item)
     curr_menu = menu_ptr;
     gui_menu_top_item = top_item;
     gui_menu_curr_item = curr_item;
-    while (!validrow(gui_menu_curr_item))
-    {
-        ++gui_menu_curr_item;
-    }
 }
 
 CMenu* get_curr_menu()
