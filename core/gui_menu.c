@@ -44,22 +44,34 @@ CMenuItem* find_menu_item(CMenu *curr_menu, int itemid )
 {
     int gui_menu_curr_item;
     CMenuItem* rv=0;
+    CMenu* menu;
 
     if ( itemid==0 )
         return 0;
 
     gui_menu_curr_item = 0;
-    while(curr_menu->menu[gui_menu_curr_item].text) {
-        if ( lang_strhash31(curr_menu->menu[gui_menu_curr_item].text) == itemid){
+    while ( curr_menu->menu[gui_menu_curr_item].text ) {
+        if ( curr_menu->menu[gui_menu_curr_item].symbol == 0 && curr_menu->menu[gui_menu_curr_item].type != MENUITEM_SEPARATOR ) {
+            return 0;
+        }
+        if ( lang_strhash31(curr_menu->menu[gui_menu_curr_item].text) == itemid ) {
             return (CMenuItem*) &(curr_menu->menu[gui_menu_curr_item]);
         }
-        if ((curr_menu->menu[gui_menu_curr_item].type & MENUITEM_MASK) == MENUITEM_SUBMENU)
-        {
-            if (curr_menu->menu[gui_menu_curr_item].text != LANG_MENU_USER_MENU) {
-                rv = find_menu_item((CMenu*)(curr_menu->menu[gui_menu_curr_item].value), itemid);
-                if ( rv )
-                    return rv;
+        if ( curr_menu->menu[gui_menu_curr_item].text != LANG_MENU_USER_MENU ) {
+            switch (curr_menu->menu[gui_menu_curr_item].type & MENUITEM_MASK) {
+            case MENUITEM_SUBMENU_PROC:
+                if (!curr_menu->menu[gui_menu_curr_item].arg && curr_menu->menu[gui_menu_curr_item].value)
+                    ((void(*)(CMenu** menu))(curr_menu->menu[gui_menu_curr_item].value))(&menu);
+                break;
+            case MENUITEM_SUBMENU:
+                menu = (CMenu*)(curr_menu->menu[gui_menu_curr_item].value);
+                break;
+            default:
+                menu = 0;
+                break;
             }
+            if (menu && (rv = find_menu_item(menu, itemid)))
+                return rv;
         }
         gui_menu_curr_item++;
     }
@@ -467,6 +479,21 @@ static void select_proc()
     }
 }
 
+// Call a function to populate a menu (may be a sub-menu loaded via a module)
+static void select_sub_menu_proc()
+{
+    CMenu* menu;
+    if (curr_menu->menu[gui_menu_curr_item].arg)
+    {
+        select_proc();
+    }
+    else if(curr_menu->menu[gui_menu_curr_item].value)
+    {
+        ((void(*)(CMenu** menu))(curr_menu->menu[gui_menu_curr_item].value))(&menu);
+        gui_activate_sub_menu(menu);
+    }
+}
+
 // Move up / down in menu, adjusting scroll position if needed
 //   increment = -1 to move up, 1 to move down
 static void gui_menu_updown(int increment)
@@ -615,7 +642,7 @@ int gui_menu_kbd_process() {
                         update_enum_value(&curr_menu->menu[gui_menu_curr_item],1);
                         break;
                     case MENUITEM_SUBMENU_PROC:
-                        select_proc();
+                        select_sub_menu_proc();
                         break;
                     case MENUITEM_SUBMENU:
                         select_sub_menu();
@@ -654,6 +681,8 @@ int gui_menu_kbd_process() {
                         update_bool_value(&curr_menu->menu[gui_menu_curr_item]);
                         break;
                     case MENUITEM_SUBMENU_PROC:
+                        select_sub_menu_proc();
+                        break;
                     case MENUITEM_PROC:
                         select_proc();
                         break;

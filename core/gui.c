@@ -662,8 +662,16 @@ static CMenu reader_submenu = {0x37,LANG_MENU_READ_TITLE, reader_submenu_items }
 
 //-------------------------------------------------------------------
 
-static CMenu games_submenu = {0x38,LANG_MENU_MISC_GAMES, 0 };
-static CMenu tools_submenu = {0x28,LANG_MENU_MISC_TOOLS, 0 };
+#define SUBMENU_COUNT 2
+
+static int submenu_module_types[SUBMENU_COUNT] = { MTYPE_GAME, MTYPE_TOOL };
+static int submenu_counts[SUBMENU_COUNT] = { 0, 0 };
+static CMenuItem* submenu_items[SUBMENU_COUNT];
+
+static CMenu submenus[SUBMENU_COUNT] = {
+    { 0x38, LANG_MENU_MISC_GAMES, 0 },
+    { 0x28, LANG_MENU_MISC_TOOLS, 0 }
+};
 
 int submenu_sort(const void* v1, const void* v2)
 {
@@ -673,103 +681,116 @@ int submenu_sort(const void* v1, const void* v2)
     return strcmp(lang_str(mi1->text), lang_str(mi2->text));
 }
 
-static CMenuItem* create_module_menu(int mtype, char symbol)
+static CMenuItem* init_menu_item(CMenuItem* item, char symbol, int text, int type, int* value, int arg)
 {
+    item->symbol = symbol;
+    item->opt_len = 0;
+    item->text = text;
+    item->type = type;
+    item->value = (int*)value;
+    item->arg = arg;
+    return item;
+}
+
+static CMenuItem* init_back_menu_item(CMenuItem* item)
+{
+    item->symbol = 0x51;
+    item->type = MENUITEM_UP;
+    item->text = LANG_MENU_BACK;
+    return item;
+}
+
+static CMenuItem* init_menu_end(CMenuItem* item)
+{
+    memset(item, 0, sizeof(CMenuItem));
+    return item;
+}
+
+static void init_module_menus()
+{
+    static CMenuItem* submenu_items[SUBMENU_COUNT];
+    
     DIR             *d;
     struct dirent   *de;
-    int             mcnt = 0;
+    int             i;
     ModuleInfo      mi;
     char            modName[33];
-    char            *nm;
 
-    // Open directory & count # of modules matching mtype
-    d = opendir("A/CHDK/MODULES");
-
-    if (d)
+    // Open directory & count # of modules matching submenu_module_types
+    if ((d = opendir("A/CHDK/MODULES")))
     {
         while ((de = readdir(d)))
         {
             if ((de->d_name[0] != 0xE5) && (strcmp(de->d_name,".") != 0) && (strcmp(de->d_name,"..") != 0))
             {
                 get_module_info(de->d_name, &mi, 0, 0);
-                if ((mi.moduleType & MTYPE_MASK) == mtype)
-                    mcnt++;
-            }
-        }
-
-        closedir(d);
-    }
-
-    // Allocate memory for menu
-    CMenuItem *submenu = malloc((mcnt+2) * sizeof(CMenuItem));
-    memset(submenu, 0, (mcnt+2) * sizeof(CMenuItem));
-
-    // Re-open directory & create game menu
-    d = opendir("A/CHDK/MODULES");
-
-    if (d)
-    {
-        mcnt = 0;
-        while ((de = readdir(d)))
-        {
-            if ((de->d_name[0] != 0xE5) && (strcmp(de->d_name,".") != 0) && (strcmp(de->d_name,"..") != 0))
-            {
-                get_module_info(de->d_name, &mi, modName, 33);
-                if ((mi.moduleType & MTYPE_MASK) == mtype)
+                for (i = 0; i < SUBMENU_COUNT; i++)
                 {
-                    submenu[mcnt].symbol = (mi.symbol != 0) ? mi.symbol : symbol;
-                    if (mi.moduleType & MTYPE_SUBMENU_TOOL)
-                        submenu[mcnt].type = MENUITEM_SUBMENU_PROC;
-                    else
-                        submenu[mcnt].type = MENUITEM_PROC;
-                    if (mi.moduleName < 0)
-                        submenu[mcnt].text = -mi.moduleName;    // LANG string
-                    else
+                    if (mi.moduleType == submenu_module_types[i])
                     {
-                        nm = malloc(strlen(modName)+1);
-                        strcpy(nm, modName);
-                        submenu[mcnt].text = (int)nm;
+                        submenu_counts[i]++;
+                        break;
                     }
-                    submenu[mcnt].value = (int*)module_run;
-                    nm = malloc(strlen(de->d_name)+1);
-                    strcpy(nm, de->d_name);
-                    submenu[mcnt].arg = (int)nm;
-                    mcnt++;
                 }
             }
         }
 
         closedir(d);
-
-        submenu[mcnt].symbol = 0x51;
-        submenu[mcnt].type = MENUITEM_UP;
-        submenu[mcnt].text = LANG_MENU_BACK;
     }
 
-    if (mcnt > 0)
+    // Allocate memory for menus
+    for (i = 0; i < SUBMENU_COUNT; i++)
     {
-        extern int submenu_sort_arm(const void* v1, const void* v2);
-        qsort(submenu, mcnt, sizeof(CMenuItem), submenu_sort_arm);
+        submenu_items[i] = malloc((submenu_counts[i] + 2) * sizeof(CMenuItem));
+        memset(submenu_items[i], 0, (submenu_counts[i] + 2) * sizeof(CMenuItem));
+        submenu_counts[i] = 0;
     }
 
-    return submenu;
-}
+    // Re-open directory & create menus
+    if ((d = opendir("A/CHDK/MODULES")))
+    {
+        while ((de = readdir(d)))
+        {
+            if ((de->d_name[0] != 0xE5) && (strcmp(de->d_name,".") != 0) && (strcmp(de->d_name,"..") != 0))
+            {
+                get_module_info(de->d_name, &mi, modName, sizeof(modName));
+                for (i = 0; i < SUBMENU_COUNT; i++)
+                {
+                    if ((mi.moduleType & MTYPE_MASK) == submenu_module_types[i])
+                    {
+                        init_menu_item(&submenu_items[i][submenu_counts[i]++],
+                            (mi.symbol != 0) ? mi.symbol : submenus[i].symbol,
+                            (mi.moduleName < 0) ? -mi.moduleName : (int)strcpy(malloc(strlen(modName) + 1), modName),
+                            (mi.moduleType & MTYPE_SUBMENU_TOOL) ? MENUITEM_SUBMENU_PROC : MENUITEM_PROC,
+                            (int*)module_run,
+                            (int)strcpy(malloc(strlen(de->d_name) + 1), de->d_name));
 
-static void gui_module_menu(CMenu *m, int type)
-{
-    if (m->menu == 0)
-        m->menu = create_module_menu(type, m->symbol);
-    gui_activate_sub_menu(m);
-}
+                        break;
+                    }
+                }
+            }
+        }
 
-static void gui_games_menu(int arg)
-{
-    gui_module_menu(&games_submenu, MTYPE_GAME);
-}
+        closedir(d);
+    }
 
-static void gui_tools_menu(int arg)
-{
-    gui_module_menu(&tools_submenu, MTYPE_TOOL);
+    for (i = 0; i < SUBMENU_COUNT; i++)
+    {
+        if (submenu_counts[i] > 0)
+        {
+            init_back_menu_item(&submenu_items[i][submenu_counts[i]]);
+            init_menu_end(&submenu_items[i][submenu_counts[i] + 1]);
+
+            extern int submenu_sort_arm(const void* v1, const void* v2);
+
+            qsort(submenu_items[i], submenu_counts[i], sizeof(CMenuItem), submenu_sort_arm);
+            submenus[i].menu = submenu_items[i];
+        }
+        else
+        {
+            submenus[i].symbol = 0;
+        }
+    }
 }
 
 //-------------------------------------------------------------------
@@ -959,36 +980,56 @@ static CMenuItem console_settings_submenu_items[] = {
 
 static CMenu console_settings_submenu = {0x28,LANG_MENU_CONSOLE_SETTINGS, console_settings_submenu_items };
 
-static CMenuItem misc_submenu_items[] = {
-    MENU_ITEM   (0x35,LANG_MENU_MISC_FILE_BROWSER,          MENUITEM_PROC,                  gui_draw_fselect,                   0 ),
-    MENU_ITEM   (0x28,LANG_MENU_MODULES,                    MENUITEM_SUBMENU,               &module_submenu,                    0 ),
-    MENU_ITEM   (0x37,LANG_MENU_MISC_TEXT_READER,           MENUITEM_SUBMENU,               &reader_submenu,                    0 ),
-    MENU_ITEM   (0x38,LANG_MENU_MISC_GAMES,                 MENUITEM_SUBMENU_PROC,          gui_games_menu,                     0 ),
-    MENU_ITEM   (0x28,LANG_MENU_MISC_TOOLS,                 MENUITEM_SUBMENU_PROC,          gui_tools_menu,                     0 ),
-    MENU_ITEM   (0x28,LANG_MENU_CONSOLE_SETTINGS,           MENUITEM_SUBMENU,               &console_settings_submenu, 0 ),
+static CMenu misc_submenu = {0x29,LANG_MENU_MISC_TITLE, 0 };
+
+#define MISC_SUBMENU_COUNT 16
+
+static void init_misc_submenu()
+{
+    static CMenuItem submenu[MISC_SUBMENU_COUNT];
+    int index = 0;
+    int i;
+
+    init_menu_item(&submenu[index++], 0x35, LANG_MENU_MISC_FILE_BROWSER, MENUITEM_PROC, (int*)gui_draw_fselect, 0);
+    init_menu_item(&submenu[index++], 0x28, LANG_MENU_MODULES, MENUITEM_SUBMENU, (int*)&module_submenu, 0);
+    init_menu_item(&submenu[index++], 0x37, LANG_MENU_MISC_TEXT_READER, MENUITEM_SUBMENU, (int*)&reader_submenu, 0);
+
+    for (i = 0; i < SUBMENU_COUNT; i++)
+        if (submenus[i].symbol != 0)
+            init_menu_item(&submenu[index++], submenus[i].symbol, submenus[i].title, MENUITEM_SUBMENU, (int*)&submenus[i], 0);
+
+    init_menu_item(&submenu[index++], 0x28, LANG_MENU_CONSOLE_SETTINGS, MENUITEM_SUBMENU, (int*)&console_settings_submenu, 0);
 #if CAM_SWIVEL_SCREEN
-    MENU_ITEM   (0x5c,LANG_MENU_MISC_FLASHLIGHT,            MENUITEM_BOOL,                  &conf.flashlight, 0 ),
+    init_menu_item(&submenu[index++], 0x5c, LANG_MENU_MISC_FLASHLIGHT, MENUITEM_BOOL, (int*)&conf.flashlight, 0);
 #endif
-    MENU_ITEM   (0x80,LANG_MENU_MISC_BUILD_INFO,            MENUITEM_PROC,                  gui_show_build_info, 0 ),
-    MENU_ITEM   (0x80,LANG_MENU_MISC_MEMORY_INFO,           MENUITEM_PROC,                  gui_show_memory_info, 0 ),
+    init_menu_item(&submenu[index++], 0x80, LANG_MENU_MISC_BUILD_INFO, MENUITEM_PROC, (int*)gui_show_build_info, 0);
+    init_menu_item(&submenu[index++], 0x80, LANG_MENU_MISC_MEMORY_INFO, MENUITEM_PROC, (int*)gui_show_memory_info, 0);
 #if !defined(OPT_FORCE_LUA_CALL_NATIVE)
-    MENU_ITEM   (0x5c,LANG_MENU_ENABLE_LUA_NATIVE_CALLS,    MENUITEM_BOOL|MENUITEM_ARG_CALLBACK, &conf.script_allow_lua_native_calls, (int)gui_lua_native_call_warning ),
+    init_menu_item(&submenu[index++], 0x5c, LANG_MENU_ENABLE_LUA_NATIVE_CALLS, MENUITEM_BOOL | MENUITEM_ARG_CALLBACK, (int*)&conf.script_allow_lua_native_calls, (int)gui_lua_native_call_warning);
 #endif
 #if defined(CAM_IS_VID_REC_WORKS)
-    MENU_ITEM   (0x5c,LANG_MENU_ENABLE_UNSAFE_IO,           MENUITEM_BOOL|MENUITEM_ARG_CALLBACK, &conf.allow_unsafe_io, (int)gui_unsafe_io_warning ),
+    init_menu_item(&submenu[index++], 0x5c, LANG_MENU_ENABLE_UNSAFE_IO, MENUITEM_BOOL | MENUITEM_ARG_CALLBACK, (int*)&conf.allow_unsafe_io, (int)gui_unsafe_io_warning);
 #endif
 #if defined(CAM_DRYOS)
-    MENU_ITEM   (0x5c,LANG_MENU_DISABLE_LFN_SUPPORT,        MENUITEM_BOOL,                  &conf.disable_lfn_parser_ui, 0 ),
+    init_menu_item(&submenu[index++], 0x5c, LANG_MENU_DISABLE_LFN_SUPPORT, MENUITEM_BOOL, (int*)&conf.disable_lfn_parser_ui, 0);
 #endif
-    MENU_ITEM   (0x33,LANG_SD_CARD,                         MENUITEM_SUBMENU,               &sdcard_submenu,                    0 ),
+    init_menu_item(&submenu[index++], 0x33, LANG_SD_CARD, MENUITEM_SUBMENU, (int*)&sdcard_submenu, 0);
 #ifdef OPT_DEBUGGING
-    MENU_ITEM   (0x2a,LANG_MENU_MAIN_DEBUG,                 MENUITEM_SUBMENU,               &debug_submenu,                     0 ),
+    init_menu_item(&submenu[index++], 0x2a, LANG_MENU_MAIN_DEBUG, MENUITEM_SUBMENU, (int*)&debug_submenu, 0);
 #endif
-    MENU_ITEM   (0x51,LANG_MENU_BACK,                       MENUITEM_UP,                    0,                                  0 ),
-    {0},
-};
 
-static CMenu misc_submenu = {0x29,LANG_MENU_MISC_TITLE, misc_submenu_items };
+    init_back_menu_item(&submenu[index++]);
+
+    init_menu_end(&submenu[index]);
+    misc_submenu.menu = submenu;
+}
+
+static void gui_misc_submenu(CMenu** menu)
+{
+    if (misc_submenu.menu == 0)
+        init_misc_submenu();
+    *menu = &misc_submenu;
+}
 
 //-------------------------------------------------------------------
 
@@ -2152,7 +2193,7 @@ static CMenuItem root_menu_items[] = {
     MENU_ITEM   (0x26,LANG_MENU_MAIN_ZEBRA_PARAM,           MENUITEM_SUBMENU,   &zebra_submenu,     0 ),
     MENU_ITEM   (0x27,LANG_MENU_MAIN_SCRIPT_PARAM,          MENUITEM_SUBMENU,   &script_submenu,    0 ),
     MENU_ITEM   (0x22,LANG_MENU_CHDK_SETTINGS,              MENUITEM_SUBMENU,   &chdk_settings_menu, 0 ),
-    MENU_ITEM   (0x29,LANG_MENU_MAIN_MISC,                  MENUITEM_SUBMENU,   &misc_submenu,      0 ),
+    MENU_ITEM   (0x29,LANG_MENU_MAIN_MISC,                  MENUITEM_SUBMENU_PROC,   gui_misc_submenu,      0 ),
     MENU_ITEM   (0x2e,LANG_MENU_USER_MENU,  	    	    MENUITEM_SUBMENU,   &user_submenu, 0 ),
     {0}
 };
@@ -2367,6 +2408,8 @@ void gui_set_need_redraw()
 //-------------------------------------------------------------------
 void gui_init()
 {
+    init_module_menus();
+
     gui_set_mode(&defaultGuiHandler);
     if (conf.start_sound > 0)
     {

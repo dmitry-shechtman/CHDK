@@ -359,6 +359,21 @@ static void select_sub_menu()
     gui_activate_sub_menu((CMenu*)(curr_menu->menu[gui_menu_curr_item].value));
 }
 
+// Call a function to populate a menu (may be a sub-menu loaded via a module)
+static void select_sub_menu_proc()
+{
+    CMenu* menu;
+    if (curr_menu->menu[gui_menu_curr_item].arg)
+    {
+        //select_proc();
+    }
+    else if (curr_menu->menu[gui_menu_curr_item].value)
+    {
+        ((void(*)(CMenu** menu))(curr_menu->menu[gui_menu_curr_item].value))(&menu);
+        gui_activate_sub_menu(menu);
+    }
+}
+
 // Move up / down in menu, adjusting scroll position if needed
 //   increment = -1 to move up, 1 to move down
 static void gui_menu_updown(int increment)
@@ -769,6 +784,9 @@ static int gui_uedit_kbd_process() {
                 {
                     case MENUITEM_UP:
                         gui_menu_back();
+                        break;
+                    case MENUITEM_SUBMENU_PROC:
+                        select_sub_menu_proc();
                         break;
                     case MENUITEM_SUBMENU:
                         select_sub_menu();
