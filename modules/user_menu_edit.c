@@ -242,7 +242,7 @@ static void move_usermenu_item_up(int* cur_menu_item_indx)
     do
         --dst_index;
     while (dst_index > 0 && !validrow(dst_index));
-    if (*cur_menu_item_indx > 0)
+    if (dst_index > 0)
         move_usermenu_item(cur_menu_item_indx, dst_index - *cur_menu_item_indx);
 }
 
