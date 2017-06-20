@@ -227,7 +227,7 @@ static void move_usermenu_item(int* cur_menu_item_indx, int dir)
     conf.user_menu_vars.items[dst_index].script_title = conf.user_menu_vars.items[src_index].script_title;    
     conf.user_menu_vars.items[src_index].script_title = tbuff;
         
-    *cur_menu_item_indx = dst_index;
+    *cur_menu_item_indx += dir;
 
     gui_menu_erase_and_redraw();
     camera_info.state.user_menu_has_changed = 1;
@@ -248,10 +248,6 @@ static void move_usermenu_item_up(int* cur_menu_item_indx)
 
 static void move_usermenu_item_down(int* cur_menu_item_indx)
 {
-    // don't allow moving link to main menu
-    if (*cur_menu_item_indx == 0)
-        return;
-
     int dst_index = *cur_menu_item_indx;
     do
         ++dst_index;
