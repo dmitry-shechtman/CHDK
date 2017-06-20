@@ -202,7 +202,7 @@ void user_menu_save() {
     } 
 }
 
-static void set_user_menu_extern(int menu, int var, char sym, short type, int* func)
+static void set_user_menu_extern(int menu, int var, char sym, short type, int* func, int mod_id)
 {
     // restore the script/module entry
     user_submenu_items[menu].symbol = sym;
@@ -211,6 +211,7 @@ static void set_user_menu_extern(int menu, int var, char sym, short type, int* f
     user_submenu_items[menu].text = (int)conf.user_menu_vars.items[var].script_title;
     user_submenu_items[menu].value = func;
     user_submenu_items[menu].arg = (int)conf.user_menu_vars.items[var].script_file;  
+    user_submenu_items[menu].mod_id = mod_id;
 }
 
 void user_menu_restore()
@@ -222,15 +223,15 @@ void user_menu_restore()
      * conf.user_menu_vars only tracks/saves the real user entries.
      */
        
-    for (x=0, y=1; x<USER_MENU_ITEMS; x++, y++)
+    for (x=0, y=1; x<USER_MENU_ITEMS; x++)
     {
         if (conf.user_menu_vars.items[x].var == USER_MENU_IS_SCRIPT)    // special flag- there is no hash for script entries
         {
-            set_user_menu_extern(y, x, 0x35, MENUITEM_PROC, (int*)gui_load_user_menu_script);
+            set_user_menu_extern(y, x, 0x35, MENUITEM_PROC, (int*)gui_load_user_menu_script, MTYPE_SCRIPT_LANG);
         }
         else if (conf.user_menu_vars.items[x].var == USER_MENU_IS_MODULE)    // special flag- there is no hash for module entries
         {   
-            set_user_menu_extern(y, x, 0x28, MENUITEM_PROC|MENUITEM_USER_MODULE, (int*)module_run);
+            set_user_menu_extern(y, x, 0x28, MENUITEM_PROC|MENUITEM_USER_MODULE, (int*)module_run, 0);
         }
         else
         { 
@@ -240,7 +241,7 @@ void user_menu_restore()
             
             if ( item )                                 // add back in if found
             {
-                user_submenu_items[y] = *item;
+                user_submenu_items[y++] = *item;
             }
             else                                        // otherwise clear the menu entry
             {
