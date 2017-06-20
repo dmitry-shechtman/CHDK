@@ -689,7 +689,7 @@ static CMenuItem* create_module_menu(int mtype, char symbol)
     {
         while ((de = readdir(d)))
         {
-            if ((de->d_name[0] != 0xE5) && (strcmp(de->d_name,".") != 0) && (strcmp(de->d_name,"..") != 0))
+            if (de->d_name[0] != 0xE5 && strcmp(de->d_name, ".") && strcmp(de->d_name, "..") && strcmp(de->d_name, "CFG"))
             {
                 get_module_info(de->d_name, &mi, 0, 0);
                 if ((mi.moduleType & MTYPE_MASK) == mtype)
@@ -712,7 +712,7 @@ static CMenuItem* create_module_menu(int mtype, char symbol)
         mcnt = 0;
         while ((de = readdir(d)))
         {
-            if ((de->d_name[0] != 0xE5) && (strcmp(de->d_name,".") != 0) && (strcmp(de->d_name,"..") != 0))
+            if (de->d_name[0] != 0xE5 && strcmp(de->d_name, ".") && strcmp(de->d_name, "..") && strcmp(de->d_name, "CFG"))
             {
                 get_module_info(de->d_name, &mi, modName, 33);
                 if ((mi.moduleType & MTYPE_MASK) == mtype)
