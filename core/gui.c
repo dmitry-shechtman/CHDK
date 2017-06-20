@@ -714,7 +714,7 @@ static CMenuItem* create_module_menu(int mtype, char symbol)
         {
             if (de->d_name[0] != 0xE5 && strcmp(de->d_name, ".") && strcmp(de->d_name, "..") && strcmp(de->d_name, "CFG"))
             {
-                get_module_info(de->d_name, &mi, modName, 33);
+                get_module_info(de->d_name, &mi, modName, sizeof(modName));
                 if ((mi.moduleType & MTYPE_MASK) == mtype)
                 {
                     submenu[mcnt].symbol = (mi.symbol != 0) ? mi.symbol : symbol;
