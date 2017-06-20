@@ -673,18 +673,33 @@ int submenu_sort(const void* v1, const void* v2)
     return strcmp(lang_str(mi1->text), lang_str(mi2->text));
 }
 
-#define MODULE_COUNTS_LENGTH 4
+#define MODULE_TYPE_COUNT 5
 
-static int module_counts[MODULE_COUNTS_LENGTH];
+static int module_counts[MODULE_TYPE_COUNT];
+static CMenuItem* module_submenus[MODULE_TYPE_COUNT];
+char module_symbols[MODULE_TYPE_COUNT] = {
+    0, //MTYPE_UNKNOWN,
+    0, //MTYPE_EXTENSION
+    0x38, //MTYPE_GAME
+    0x28, //MTYPE_EXTENSION
+    0x27, //MTYPE_SCRIPT_LANG
+};
 
-static void init_module_counts()
+static void init_module_menus()
 {
     DIR             *d;
     struct dirent   *de;
     ModuleInfo      mi;
     int             mtype;
+    char            modName[33];
+    char            *nm;
+    int             i;
 
-    memset(module_counts, 0, sizeof(module_counts));
+    // Initialize module counts
+    for (i = 0; i < MODULE_TYPE_COUNT; i++)
+    {
+        module_counts[i] = 0;
+    }
 
     // Open directory & count # of modules
     if ((d = opendir("A/CHDK/MODULES")))
@@ -695,30 +710,21 @@ static void init_module_counts()
             {
                 get_module_info(de->d_name, &mi, 0, 0);
                 mtype = mi.moduleType & MTYPE_MASK;
-                if (mtype > 0 && mtype < MODULE_COUNTS_LENGTH)
+                if (mtype >= 0 && mtype < MODULE_TYPE_COUNT)
                     module_counts[mtype]++;
             }
         }
 
         closedir(d);
     }
-}
 
-static CMenuItem* create_module_menu(int mtype, char symbol)
-{
-    DIR             *d;
-    struct dirent   *de;
-    ModuleInfo      mi;
-    char            modName[33];
-    char            *nm;
-    int             mcnt = 0;
-
-    if (mtype <= 0 || mtype >= MODULE_COUNTS_LENGTH)
-        return 0;
-
-    // Allocate memory for menu
-    CMenuItem *submenu = malloc((module_counts[mtype]+2) * sizeof(CMenuItem));
-    memset(submenu, 0, (module_counts[mtype] + 2) * sizeof(CMenuItem));
+    // Allocate memory for menus
+    for (i = MTYPE_GAME; i <= MTYPE_TOOL; i++)
+    {
+        module_submenus[i] = malloc((module_counts[i] + 2) * sizeof(CMenuItem));
+        memset(module_submenus[i], 0, (module_counts[i] + 2) * sizeof(CMenuItem));
+        module_counts[i] = 0;
+    }
 
     // Open directory & create Game/Tools menu
     if ((d = opendir("A/CHDK/MODULES")))
@@ -728,50 +734,53 @@ static CMenuItem* create_module_menu(int mtype, char symbol)
             if (de->d_name[0] != 0xE5 && strcmp(de->d_name, ".") && strcmp(de->d_name, "..") && strcmp(de->d_name, "CFG"))
             {
                 get_module_info(de->d_name, &mi, modName, sizeof(modName));
-                if ((mi.moduleType & MTYPE_MASK) == mtype)
+                mtype = mi.moduleType & MTYPE_MASK;
+                if (mtype >= MTYPE_GAME && mtype <= MTYPE_TOOL)
                 {
-                    submenu[mcnt].symbol = (mi.symbol != 0) ? mi.symbol : symbol;
+                    module_submenus[mtype][module_counts[mtype]].symbol = (mi.symbol != 0) ? mi.symbol : module_symbols[mtype];
                     if (mi.moduleType & MTYPE_SUBMENU_TOOL)
-                        submenu[mcnt].type = MENUITEM_SUBMENU_PROC;
+                        module_submenus[mtype][module_counts[mtype]].type = MENUITEM_SUBMENU_PROC;
                     else
-                        submenu[mcnt].type = MENUITEM_PROC;
+                        module_submenus[mtype][module_counts[mtype]].type = MENUITEM_PROC;
                     if (mi.moduleName < 0)
-                        submenu[mcnt].text = -mi.moduleName;    // LANG string
+                        module_submenus[mtype][module_counts[mtype]].text = -mi.moduleName;    // LANG string
                     else
                     {
-                        nm = malloc(strlen(modName)+1);
+                        nm = malloc(strlen(modName) + 1);
                         strcpy(nm, modName);
-                        submenu[mcnt].text = (int)nm;
+                        module_submenus[mtype][module_counts[mtype]].text = (int)nm;
                     }
-                    submenu[mcnt].value = (int*)module_run;
-                    nm = malloc(strlen(de->d_name)+1);
+                    module_submenus[mtype][module_counts[mtype]].value = (int*)module_run;
+                    nm = malloc(strlen(de->d_name) + 1);
                     strcpy(nm, de->d_name);
-                    submenu[mcnt].arg = (int)nm;
-                    mcnt++;
+                    module_submenus[mtype][module_counts[mtype]].arg = (int)nm;
+                    module_counts[mtype]++;
                 }
             }
         }
 
         closedir(d);
-
-        submenu[mcnt].symbol = 0x51;
-        submenu[mcnt].type = MENUITEM_UP;
-        submenu[mcnt].text = LANG_MENU_BACK;
     }
 
-    if (mcnt > 0)
+    // Add Back items and sort
+    for (i = MTYPE_GAME; i <= MTYPE_TOOL; i++)
     {
-        extern int submenu_sort_arm(const void* v1, const void* v2);
-        qsort(submenu, mcnt, sizeof(CMenuItem), submenu_sort_arm);
-    }
+        if (module_counts[i] > 0)
+        {
+            module_submenus[i][module_counts[i]].symbol = 0x51;
+            module_submenus[i][module_counts[i]].type = MENUITEM_UP;
+            module_submenus[i][module_counts[i]].text = LANG_MENU_BACK;
 
-    return submenu;
+            extern int submenu_sort_arm(const void* v1, const void* v2);
+            qsort(module_submenus[i], module_counts[i], sizeof(CMenuItem), submenu_sort_arm);
+        }
+    }
 }
 
 static void gui_module_menu(CMenu *m, int type)
 {
     if (m->menu == 0)
-        m->menu = create_module_menu(type, m->symbol);
+        m->menu = module_submenus[type];
     gui_activate_sub_menu(m);
 }
 
@@ -2387,7 +2396,7 @@ void gui_init()
     }
 
     init_splash();
-    init_module_counts();
+    init_module_menus();
 
     draw_init();
 
