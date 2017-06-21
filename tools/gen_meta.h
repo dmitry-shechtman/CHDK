@@ -19,9 +19,9 @@
 
 #include <stdio.h>
 
-#ifndef SHA512_BLOCK_SIZE
-#define SHA512_BLOCK_SIZE 128
-#endif
+#include "crypto/includes.h"
+#include "crypto/common.h"
+#include "sha256.h"
 
 void meta_map_write_start(FILE *fout);
 void meta_map_write_end(FILE* fout);
@@ -41,7 +41,7 @@ int meta_category_write(const meta_category_t* category, FILE* fout);
 typedef struct
 {
 	const char* filename;
-	unsigned char hash[SHA512_BLOCK_SIZE+1];
+	unsigned char hash[SHA256_BLOCK_SIZE+1];
 	size_t size;
 }
 meta_hash_item_t;

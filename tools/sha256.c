@@ -11,33 +11,6 @@
 #include "sha256.h"
 
 
-/**
- * sha256_vector - SHA256 hash for data vector
- * @num_elem: Number of elements in the data vector
- * @addr: Pointers to the data areas
- * @len: Lengths of the data blocks
- * @mac: Buffer for the hash
- * Returns: 0 on success, -1 of failure
- */
-int sha256_vector(size_t num_elem, const u8 *addr[], const size_t *len,
-		  u8 *mac)
-{
-	struct sha256_state ctx;
-	size_t i;
-
-	if (TEST_FAIL())
-		return -1;
-
-	sha256_init(&ctx);
-	for (i = 0; i < num_elem; i++)
-		if (sha256_process(&ctx, addr[i], len[i]))
-			return -1;
-	if (sha256_done(&ctx, mac))
-		return -1;
-	return 0;
-}
-
-
 /* ===== start - public domain SHA256 implementation ===== */
 
 /* This is based on SHA256 implementation in LibTomCrypt that was released into

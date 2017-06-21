@@ -14,19 +14,11 @@
  * GNU General Public License for more details.
  */
 
-#include "crypto/includes.h"
-#include "crypto/common.h"
-#include "sha256.h"
-#include "sha384.h"
-#include "sha512.h"
-
 #include "gen_meta.h"
 
 #define BUFFER_SIZE 4096
 
 #define SHA256_HASH_SIZE 32
-#define SHA384_HASH_SIZE 48
-#define SHA512_HASH_SIZE 64
 
 static int sha256(FILE* f, meta_hash_item_t* hash)
 {
@@ -44,44 +36,6 @@ static int sha256(FILE* f, meta_hash_item_t* hash)
 		return -1;
 
 	hash->size = SHA256_HASH_SIZE;
-	return 0;
-}
-
-static int sha384(FILE* f, meta_hash_item_t* hash)
-{
-	struct sha384_state ctx;
-	size_t len;
-	unsigned char buffer[BUFFER_SIZE];
-
-	sha384_init(&ctx);
-
-	while ((len = (fread(buffer, 1, BUFFER_SIZE, f))) > 0)
-		if (sha384_process(&ctx, buffer, len))
-			return -1;
-
-	if (sha384_done(&ctx, hash->hash))
-		return -1;
-
-	hash->size = SHA384_HASH_SIZE;
-	return 0;
-}
-
-static int sha512(FILE* f, meta_hash_item_t* hash)
-{
-	struct sha512_state ctx;
-	size_t len;
-	unsigned char buffer[BUFFER_SIZE];
-
-	sha512_init(&ctx);
-
-	while ((len = (fread(buffer, 1, BUFFER_SIZE, f))) > 0)
-		if (sha512_process(&ctx, buffer, len))
-			return -1;
-
-	if (sha512_done(&ctx, hash->hash))
-		return -1;
-
-	hash->size = SHA512_HASH_SIZE;
 	return 0;
 }
 
@@ -110,10 +64,6 @@ int meta_hash_calc(const char* basepath, meta_hash_item_t* hash, const char* nam
 
 	if (!strcmp(name, "sha256"))
 		result = sha256(fin, hash);
-	else if (!strcmp(name, "sha384"))
-		result = sha384(fin, hash);
-	else if (!strcmp(name, "sha512"))
-		result = sha512(fin, hash);
 	else
 		result = -2;
 
