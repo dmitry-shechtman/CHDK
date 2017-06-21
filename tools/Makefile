@@ -5,7 +5,8 @@ include $(topdir)makefile_tools.inc
 SUBDIRS=packfi2 elf2flt
 
 EXES=makeexport$(EXE) pakwif$(EXE) finsig_vxworks$(EXE) finsig_dryos$(EXE) gensig_vxworks$(EXE) gensig_dryos$(EXE) \
-     dancingbits$(EXE) font_8x16_pack$(EXE) makelang$(EXE) code_gen$(EXE) gen_conf_lua$(EXE)
+     dancingbits$(EXE) font_8x16_pack$(EXE) makelang$(EXE) code_gen$(EXE) gen_conf_lua$(EXE) \
+     gen_meta_software$(EXE) #gen_meta_modules$(EXE)
 
 ifeq ($(OPT_CAPSTONE_TOOLS),1)
 EXES+=finsig_thumb2$(EXE)
@@ -97,6 +98,14 @@ capdis$(EXE): capdis.o stubs_load.o firmware_load_ng.o
 	@echo $^ \-\> $@
 	$(HOSTCC) $(HOSTCFLAGS) -o $@ $^ $(CAPSTONE_TOOLS_LINK)
 
+gen_meta_software$(EXE): gen_meta_software.o gen_meta.o sha256.o sha384.o sha512.o
+	@echo $^ \-\> $@
+	$(HOSTCC) $(HOSTCFLAGS) -o $@ $^
+
+#gen_meta_modules$(EXE): gen_meta_modules.o gen_meta.o sha256.o sha384.o sha512.o
+#	@echo $^ \-\> $@
+#	$(HOSTCC) $(HOSTCFLAGS) -o $@ $^
+
 clean:
 	rm -f *.o $(EXES) $(EXTRA_EXES)
 
@@ -178,6 +187,30 @@ finsig_thumb2.o: finsig_thumb2.c stubs_load.h firmware_load_ng.h
 capdis.o: capdis.c stubs_load.h firmware_load_ng.h
 	@echo $< \-\> $@
 	$(HOSTCC) $(HOSTCFLAGS) $(CAPSTONE_TOOLS_INC) -c -o $@ $<
+
+gen_meta_software.o: gen_meta_software.c gen_meta.h
+	@echo $< \-\> $@
+	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
+
+gen_meta_modules.o: gen_meta_modules.c gen_meta.h
+	@echo $< \-\> $@
+	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
+
+gen_meta.o: gen_meta.c gen_meta.h sha256.h sha384.h sha512.h
+	@echo $< \-\> $@
+	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
+
+sha256.o: sha256.c sha256.h
+	@echo $< \-\> $@
+	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
+
+sha384.o: sha384.c sha384.h
+	@echo $< \-\> $@
+	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
+
+sha512.o: sha512.c sha512.h
+	@echo $< \-\> $@
+	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
 
 font_8x16_pack.o: font_8x16_pack.c ../lib/font/font_8x16_uni.h
 

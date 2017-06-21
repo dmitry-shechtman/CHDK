@@ -65,6 +65,9 @@ endif
 ifndef PLATFORMSUB
 	$(error PLATFORMSUB has not been defined. Specify the PLATFORMSUB to build on the command line or in localbuildconf.inc)
 endif
+ifndef BUILD_SOURCE
+	$(error BUILD_SOURCE has not been defined. Specify the BUILD_SOURCE to build on the command line or in localbuildconf.inc)
+endif
 
 .PHONY: infoline
 infoline: platformcheck
@@ -95,6 +98,37 @@ ifdef PLATFORMOS
             endif
         endif
     endif
+endif
+
+
+META_DATE = `date +%Y-%m-%dT%H:%M:%SZ -u`
+GEN_SOFTWARE=$(topdir)tools/gen_meta_software$(EXE)
+GEN_SOFTWARE_FLAGS=--product-name CHDK --product-version $(BUILD_NUMBER).$(BUILD_SVNREV) --product-created $(META_DATE) --build-changeset $(BUILD_SVNREV) --camera-platform $(PLATFORM) --camera-revision $(PLATFORMSUB) --source-name $(VER) --compiler-name GCC --compiler-version $(GCC_VERSION) --source-channel $(BUILD_SOURCE)
+
+ifdef STATE
+GEN_SOFTWARE_FLAGS+= --build-status $(STATE)
+endif
+
+ifdef OPT_DE_VERSION
+GEN_SOFTWARE_FLAGS+= --product-language de
+ifeq ($(BUILD_SOURCE),trunk)
+GEN_SOFTWARE_FLAGS+= --source-url http://forum.chdk-treff.de/download_dev.php
+endif
+ifeq ($(BUILD_SOURCE),release)
+GEN_SOFTWARE_FLAGS+= --source-url http://forum.chdk-treff.de/download.php
+endif
+else
+GEN_SOFTWARE_FLAGS+= --product-language en
+ifeq ($(BUILD_SOURCE),trunk)
+GEN_SOFTWARE_FLAGS+= --source-url http://mighty-hoernsche.de/trunk/
+endif
+ifeq ($(BUILD_SOURCE),release)
+GEN_SOFTWARE_FLAGS+= --source-url http://mighty-hoernsche.de/
+endif
+endif
+
+ifdef NEED_ENCODED_DISKBOOT
+GEN_SOFTWARE_FLAGS+= --encoding-name dancingbits --encoding-version $(NEED_ENCODED_DISKBOOT)
 endif
 
 
@@ -167,17 +201,22 @@ firzipsubcopy: infoline
 
 
 firzipsubcomplete: infoline clean firsub
+	mkdir -p $(topdir)_HDKMETA/PS
 	cat $(doc)/1_intro.txt $(cam)/notes.txt $(doc)/2_installation.txt $(doc)/3_faq.txt $(doc)/4_urls.txt $(doc)/5_gpl.txt $(doc)/6_ubasic_copyright.txt > $(doc)/readme.txt
 	@echo \-\> $(ZIP_SMALL)
 	rm -f $(bin)/$(ZIP_SMALL)
 	LANG=C echo "CHDK-$(VER) for $(TARGET_CAM) fw:$(TARGET_FW) build:$(BUILD_NUMBER)-$(BUILD_SVNREV)$(STATE) date:`$(ZIPDATE)`" | \
 		zip -9jz $(bin)/$(ZIP_SMALL) $(bin)/DISKBOOT.BIN $(FW_UPD_FILE) $(doc)/changelog.txt $(doc)/readme.txt > $(DEVNULL)
-	rm -f $(bin)/DISKBOOT.BIN $(FW_UPD_FILE)
 	@echo \-\> $(ZIP_FULL)
 	cp -f $(bin)/$(ZIP_SMALL) $(bin)/$(ZIP_FULL)
 	zip -9 $(bin)/$(ZIP_SMALL) $(chdk)/MODULES/* > $(DEVNULL)
+	$(GEN_SOFTWARE) PS DISKBOOT.BIN $(bin) $(GEN_SOFTWARE_FLAGS)
+	zip -9r $(bin)/$(ZIP_SMALL) $(topdir)_HDKMETA > $(DEVNULL)
 	zip -9j $(bin)/$(ZIP_FULL) $(tools)/vers.req > $(DEVNULL)
+	$(GEN_SOFTWARE) PS DISKBOOT.BIN $(bin) $(GEN_SOFTWARE_FLAGS) --build-name full
+	zip -9r $(bin)/$(ZIP_FULL) $(topdir)_HDKMETA > $(DEVNULL)
 	zip -9r $(bin)/$(ZIP_FULL) $(chdk)/* -x CHDK/logo\*.dat \*Makefile \*.svn\* > $(DEVNULL)
+	rm -f $(bin)/DISKBOOT.BIN $(FW_UPD_FILE) $(topdir)_HDKMETA/PS/*
 
 
 firzipsubcompletecopy: infoline
