@@ -18,7 +18,8 @@ LDOPTS=-nostdlib -Wl,--allow-shlib-undefined -Wl,-T,$(tools)/link-boot.ld -Wl,-N
 FLTS=$Ofselect.flt $Oedgeovr.flt $Ocurves.flt $Ompopup.flt $Opalette.flt $Ogrids.flt $Omdetect.flt $Ozebra.flt \
      $O_dng.flt $Obenchm.flt $Ocalend.flt $O4wins.flt $Omastmind.flt $Oreversi.flt $Osokoban.flt $O_rawop.flt \
      $Otxtread.flt $Omemview.flt $Omodinsp.flt $Otetris.flt $Osnake.flt $Osudoku.flt $O_tbox.flt $O_osd_le.flt \
-     $O_hexbox.flt $Oubasic.flt $Olua.flt $Ocpuinfo.flt $Ouseredit.flt $Oeyefi.flt $Ohisto.flt $Oshothist.flt
+     $O_hexbox.flt $Oubasic.flt $Olua.flt $Ocpuinfo.flt $Ouseredit.flt $Oeyefi.flt $Ohisto.flt $Oshothist.flt \
+	 $Omenumeta.flt
 
 # Include optional rules for user defined modules
 # Can be used to add additional modules to FLTS and add the rules to build them
@@ -83,6 +84,7 @@ $Otetris.flt: $Ogui_tetris.o
 $Osnake.flt: $Ogui_snake.o
 $Osokoban.flt: $Ogui_sokoban.o
 $Osudoku.flt: $Ogui_sudoku.o
+$Omenumeta.flt: $Omenumeta.o $Ojson.o
 
 $Ogui_calendar.o: gui_calendar.c simple_module.c
 $Ogui_bench.o: gui_bench.c simple_module.c
@@ -98,6 +100,7 @@ $Ocpuinfo.o: simple_module.c
 
 $Oshot_histogram.o: shot_histogram.c shot_histogram.h
 
+$Omenumeta.o: menumeta.c json.h
 $Ojson.o: json.c json.h
 
 clean:
