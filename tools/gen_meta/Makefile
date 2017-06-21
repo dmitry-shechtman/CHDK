@@ -24,11 +24,11 @@ gen_meta_software.o: gen_meta_software.c gen_meta.h
 #	@echo $< \-\> $@
 #	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
 
-gen_meta.o: gen_meta.c gen_meta.h sha256.h
+gen_meta.o: gen_meta.c gen_meta.h $(modules)/sha256.h
 	@echo $< \-\> $@
 	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
 
-sha256.o: sha256.c sha256.h
+sha256.o: $(modules)/sha256.c $(modules)/sha256.h
 	@echo $< \-\> $@
 	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
 

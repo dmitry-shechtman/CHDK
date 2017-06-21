@@ -2,6 +2,8 @@
  * SHA-256 hash implementation and interface functions
  * Copyright (c) 2003-2011, Jouni Malinen <j@w1.fi>
  *
+ * Modified for CHDK by Dmitry Shechtman
+ *
  * This software may be distributed under the terms of the BSD license.
  * See README for more details.
  */
