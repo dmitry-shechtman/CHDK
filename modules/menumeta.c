@@ -32,7 +32,7 @@ void write_menu(const CMenu* menu, char* buf, JSON* json) {
     json_write_array_start(json);
 
     for (i = 0; menu->menu[i].text; i++) {
-        if (menu->menu[i].text == LANG_MENU_USER_MENU || menu->menu[i].type == MENUITEM_UP)
+        if (menu->menu[i].text == LANG_MENU_USER_MENU || menu->menu[i].type == MENUITEM_UP || menu->menu[i].type == MENUITEM_TEXT)
             continue;
 
         if (i > 0)
