@@ -54,7 +54,7 @@ void json_flush(JSON* json) {
 void json_close(JSON* json) {
     if (json == NULL)
         return;
-    
+
     json_flush(json);
     free(json->buffer);
     free(json);
@@ -71,15 +71,34 @@ static void json_write_char(char c, JSON* json) {
     json->buffer[json->index++] = c;
 }
 
-void json_write_null(JSON* json) {
+static void json_write_literal(const char* str, JSON* json) {
     if (json == NULL)
         return;
 
-    if (json->index + 4 >= JSON_BUFFER_SIZE) {
+    if (json->index + strlen(str) >= JSON_BUFFER_SIZE) {
         json_flush(json);
     }
 
-    json->index += sprintf(&json->buffer[json->index], "null");
+    json->index += sprintf(&json->buffer[json->index], str);
+}
+
+void json_write_null(JSON* json) {
+    json_write_literal("null", json);
+}
+
+static void json_write_false(JSON* json) {
+    json_write_literal("false", json);
+}
+
+static void json_write_true(JSON* json) {
+    json_write_literal("true", json);
+}
+
+void json_write_bool(int value, JSON* json) {
+    if (value)
+        json_write_true(json);
+    else
+        json_write_false(json);
 }
 
 void json_write_string(const char* str, JSON* json) {
@@ -111,6 +130,12 @@ void json_write_string(const char* str, JSON* json) {
         json->buffer[json->index++] = str[i];
     }
     json->buffer[json->index++] = '"';
+}
+
+void json_write_prop_bool(const char* name, int value, JSON* json) {
+    json_write_string(name, json);
+    json_write_prop_sep(json);
+    json_write_bool(value, json);
 }
 
 void json_write_prop_string(const char* name, const char* value, JSON* json) {
