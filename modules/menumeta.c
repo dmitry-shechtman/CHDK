@@ -22,7 +22,7 @@
 #include "lang.h"
 #include "json.h"
 
-#define FILENAME "A/_HDKMETA/PS/MENUS.JSN"
+#define FILENAME "A/_HDKMETA/PS/MENU.JSN"
 
 void menumeta_finish(unsigned dummy);
 
