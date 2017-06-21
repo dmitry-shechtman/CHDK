@@ -23,12 +23,9 @@
 #include <string.h>
 
 #include "sha256.h"
+#include "json.h"
 
-void meta_map_write_start(FILE *fout);
-void meta_map_write_end(FILE* fout);
-void meta_map_write_delim(FILE* fout);
-void meta_prop_write(const char* s, FILE* fout);
-int meta_prop_write_str(const char* name, const char* value, FILE* fout);
+int meta_prop_write_str(const char* name, const char* value, JSON* json);
 
 typedef struct
 {
@@ -37,12 +34,12 @@ typedef struct
 meta_category_t;
 
 void meta_category_init(meta_category_t* category);
-int meta_category_write(const meta_category_t* category, FILE* fout);
+int meta_category_write(const meta_category_t* category, JSON* json);
 
 typedef struct
 {
 	const char* filename;
-	unsigned char hash[SHA256_BLOCK_SIZE+1];
+	unsigned char hash[SHA256_BLOCK_SIZE + 1];
 	size_t size;
 }
 meta_hash_item_t;
@@ -58,7 +55,7 @@ typedef struct
 meta_hash_t;
 
 void meta_hash_init(meta_hash_t* hash);
-int meta_hash_write(const meta_hash_t* hash, FILE* fout);
+int meta_hash_write(const meta_hash_t* hash, JSON* json);
 
 int cli_flag_bool(const char* name, int argc, char const* argv[], int* i);
 int cli_flag_int(const char* name, int argc, char const* argv[], int* i, int* value);

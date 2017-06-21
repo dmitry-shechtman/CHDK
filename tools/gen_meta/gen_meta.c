@@ -83,40 +83,11 @@ int meta_hash_calc(const char* basepath, meta_hash_item_t* hash, const char* nam
 	return 0;
 }
 
-void meta_map_write_start(FILE *fout)
-{
-	fputc('{', fout);
-}
-
-void meta_map_write_end(FILE* fout)
-{
-	fputc('}', fout);
-}
-
-void meta_map_write_delim(FILE* fout)
-{
-	fputc(',', fout);
-}
-
-static void meta_str_write(const char* s, FILE* fout)
-{
-	fputc('"', fout);
-	fputs(s, fout);
-	fputc('"', fout);
-}
-
-void meta_prop_write(const char* s, FILE* fout)
-{
-	meta_str_write(s, fout);
-	fputc(':', fout);
-}
-
-int meta_prop_write_str(const char* name, const char* value, FILE* fout)
+int meta_prop_write_str(const char* name, const char* value, JSON* json)
 {
 	if (!value)
 		return 0;
-	meta_prop_write(name, fout);
-	meta_str_write(value, fout);
+	json_write_prop_string(name, value, json);
 	return -1;
 }
 
@@ -125,46 +96,49 @@ void meta_category_init(meta_category_t* category)
 	category->name = NULL;
 }
 
-int meta_category_write(const meta_category_t* category, FILE* fout)
+int meta_category_write(const meta_category_t* category, JSON* json)
 {
 	int result = 0;
-	meta_prop_write("category", fout);
-	meta_map_write_start(fout);
-	if (!meta_prop_write_str("name", category->name, fout))
+	json_write_string("category", json);
+	json_write_prop_sep(json);
+	json_write_object_start(json);
+	if (!meta_prop_write_str("name", category->name, json))
 	{
 		fprintf(stderr, "Missing category name\n");
 		result = -1;
 	}
-	meta_map_write_end(fout);
+	json_write_object_end(json);
 	return result;
 }
 
-static void meta_hash_char_write(unsigned char c, FILE* fout)
+static char meta_hash_get_char(unsigned char c)
 {
-	putc(c <= 9 ? c + 0x30 : c + 0x57, fout);
+	return c <= 9 ? c + 0x30 : c + 0x57;
 }
 
-static void meta_hash_str_write(const meta_hash_item_t* hash, FILE* fout)
+static void meta_hash_str_write(const meta_hash_item_t* hash, JSON* json)
 {
-	int i;
-	fputc('"', fout);
-	for (i = 0; i < hash->size; i++)
+	static char str[SHA256_BLOCK_SIZE + 1];
+	int i, j;
+	for (i = 0, j = 0; i < hash->size; i++)
 	{
-		meta_hash_char_write(hash->hash[i] / 16, fout);
-		meta_hash_char_write(hash->hash[i] % 16, fout);
+		str[j++] = meta_hash_get_char(hash->hash[i] / 16);
+		str[j++] = meta_hash_get_char(hash->hash[i] % 16);
 	}
-	fputc('"', fout);
+	str[j] = 0;
+	json_write_string(str, json);
 }
 
-static void meta_hash_item_write(const meta_hash_item_t* hash, FILE* fout)
+static void meta_hash_item_write(const meta_hash_item_t* hash, JSON* json)
 {
 	size_t i;
 	char lower[64];
 	for (i = 0; i < strlen(hash->filename); i++)
 		lower[i] = tolower(hash->filename[i]);
 	lower[i] = '\0';
-	meta_prop_write(lower, fout);
-	meta_hash_str_write(hash, fout);
+	json_write_string(lower, json);
+	json_write_prop_sep(json);
+	meta_hash_str_write(hash, json);
 }
 
 void meta_hash_init(meta_hash_t* hash)
@@ -174,30 +148,33 @@ void meta_hash_init(meta_hash_t* hash)
 	hash->count = 0;
 }
 
-int meta_hash_write(const meta_hash_t* hash, FILE* fout)
+int meta_hash_write(const meta_hash_t* hash, JSON* json)
 {
 	size_t i;
-	meta_prop_write("hash", fout);
-	meta_map_write_start(fout);
+	json_write_string("hash", json);
+	json_write_prop_sep(json);
+	json_write_object_start(json);
 	if (hash->name != NULL)
 	{
-		meta_prop_write("name", fout);
-		meta_str_write(hash->name, fout);
-		meta_map_write_delim(fout);
+		json_write_string("name", json);
+		json_write_prop_sep(json);
+		json_write_string(hash->name, json);
+		json_write_object_array_sep(json);
 	}
 	if (hash->items != NULL)
 	{
-		meta_prop_write("values", fout);
-		meta_map_write_start(fout);
+		json_write_string("values", json);
+		json_write_prop_sep(json);
+		json_write_object_start(json);
 		for (i = 0; i < hash->count; i++)
 		{
-			meta_hash_item_write(&hash->items[i], fout);
+			meta_hash_item_write(&hash->items[i], json);
 			if (i < hash->count - 1)
-				meta_map_write_delim(fout);
+				json_write_object_array_sep(json);
 		}
-		meta_map_write_end(fout);
+		json_write_object_end(json);
 	}
-	meta_map_write_end(fout);
+	json_write_object_end(json);
 	return 0;
 }
 

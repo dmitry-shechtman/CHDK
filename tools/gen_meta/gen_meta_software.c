@@ -36,43 +36,44 @@ static void meta_product_init(meta_product_t* product)
 	product->created = NULL;
 }
 
-static int meta_product_write(const meta_product_t* product, FILE* fout)
+static int meta_product_write(const meta_product_t* product, JSON* json)
 {
 	int result = 0;
-	meta_prop_write("product", fout);
-	meta_map_write_start(fout);
+	json_write_string("product", json);
+	json_write_prop_sep(json);
+	json_write_object_start(json);
 
-	if (!meta_prop_write_str("name", product->name, fout))
+	if (!meta_prop_write_str("name", product->name, json))
 	{
 		fprintf(stderr, "Missing product name\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("version", product->version, fout))
+	if (!meta_prop_write_str("version", product->version, json))
 	{
 		fprintf(stderr, "Missing product version\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("language", product->language, fout))
+	if (!meta_prop_write_str("language", product->language, json))
 	{
 		fprintf(stderr, "Missing product language\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("created", product->created, fout))
+	if (!meta_prop_write_str("created", product->created, json))
 	{
 		fprintf(stderr, "Missing product creation date\n");
 		result = -1;
@@ -80,11 +81,11 @@ static int meta_product_write(const meta_product_t* product, FILE* fout)
 
 	if (product->versionPrefix)
 	{
-		meta_map_write_delim(fout);
-		meta_prop_write_str("versionPrefix", product->versionPrefix, fout);
+		json_write_object_array_sep(json);
+		meta_prop_write_str("versionPrefix", product->versionPrefix, json);
 	}
 
-	meta_map_write_end(fout);
+	json_write_object_end(json);
 	return result;
 }
 
@@ -101,29 +102,30 @@ static void meta_camera_init(meta_camera_t* camera)
 	camera->revision = NULL;
 }
 
-static int meta_camera_write(const meta_camera_t* camera, FILE* fout)
+static int meta_camera_write(const meta_camera_t* camera, JSON* json)
 {
 	int result = 0;
-	meta_prop_write("camera", fout);
-	meta_map_write_start(fout);
+	json_write_string("camera", json);
+	json_write_prop_sep(json);
+	json_write_object_start(json);
 
-	if (!meta_prop_write_str("platform", camera->platform, fout))
+	if (!meta_prop_write_str("platform", camera->platform, json))
 	{
 		fprintf(stderr, "Missing camera platform\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("revision", camera->revision, fout))
+	if (!meta_prop_write_str("revision", camera->revision, json))
 	{
 		fprintf(stderr, "Missing camera revision\n");
 		result = -1;
 	}
 
-	meta_map_write_end(fout);
+	json_write_object_end(json);
 	return result;
 }
 
@@ -144,33 +146,34 @@ static void meta_build_init(meta_build_t* build)
 	build->creator = NULL;
 }
 
-static int meta_build_write(const meta_build_t* build, FILE* fout)
+static int meta_build_write(const meta_build_t* build, JSON* json)
 {
 	int result = 0;
-	meta_prop_write("build", fout);
-	meta_map_write_start(fout);
+	json_write_string("build", json);
+	json_write_prop_sep(json);
+	json_write_object_start(json);
 
-	if (!meta_prop_write_str("name", build->name, fout))
+	if (!meta_prop_write_str("name", build->name, json))
 	{
 		fprintf(stderr, "Missing build name\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("status", build->status, fout))
+	if (!meta_prop_write_str("status", build->status, json))
 	{
 		fprintf(stderr, "Missing build status\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("changeset", build->changeset, fout))
+	if (!meta_prop_write_str("changeset", build->changeset, json))
 	{
 		fprintf(stderr, "Missing build changeset\n");
 		result = -1;
@@ -178,11 +181,11 @@ static int meta_build_write(const meta_build_t* build, FILE* fout)
 
 	if (build->creator != NULL)
 	{
-		meta_map_write_delim(fout);
-		meta_prop_write_str("creator", build->creator, fout);
+		json_write_object_array_sep(json);
+		meta_prop_write_str("creator", build->creator, json);
 	}
 
-	meta_map_write_end(fout);
+	json_write_object_end(json);
 	return result;
 }
 
@@ -199,29 +202,30 @@ static void meta_compiler_init(meta_compiler_t* compiler)
 	compiler->version = NULL;
 }
 
-static int meta_compiler_write(const meta_compiler_t* compiler, FILE* fout)
+static int meta_compiler_write(const meta_compiler_t* compiler, JSON* json)
 {
 	int result = 0;
-	meta_prop_write("compiler", fout);
-	meta_map_write_start(fout);
+	json_write_string("compiler", json);
+	json_write_prop_sep(json);
+	json_write_object_start(json);
 
-	if (!meta_prop_write_str("name", compiler->name, fout))
+	if (!meta_prop_write_str("name", compiler->name, json))
 	{
 		fprintf(stderr, "Missing compiler name\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("version", compiler->version, fout))
+	if (!meta_prop_write_str("version", compiler->version, json))
 	{
 		fprintf(stderr, "Missing compiler version\n");
 		result = -1;
 	}
 
-	meta_map_write_end(fout);
+	json_write_object_end(json);
 	return result;
 }
 
@@ -240,39 +244,40 @@ static void meta_source_init(meta_source_t* source)
 	source->url = NULL;
 }
 
-static int meta_source_write(const meta_source_t* source, FILE* fout)
+static int meta_source_write(const meta_source_t* source, JSON* json)
 {
 	int result = 0;
-	meta_prop_write("source", fout);
-	meta_map_write_start(fout);
+	json_write_string("source", json);
+	json_write_prop_sep(json);
+	json_write_object_start(json);
 
-	if (!meta_prop_write_str("name", source->name, fout))
+	if (!meta_prop_write_str("name", source->name, json))
 	{
 		fprintf(stderr, "Missing source name\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("channel", source->channel, fout))
+	if (!meta_prop_write_str("channel", source->channel, json))
 	{
 		fprintf(stderr, "Missing source channel\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("url", source->url, fout))
+	if (!meta_prop_write_str("url", source->url, json))
 	{
 		fprintf(stderr, "Missing source url\n");
 		result = -1;
 	}
 
-	meta_map_write_end(fout);
+	json_write_object_end(json);
 	return result;
 }
 
@@ -289,34 +294,36 @@ static void meta_encoding_init(meta_encoding_t* encoding)
 	encoding->version = 0;
 }
 
-static int meta_encoding_write(const meta_encoding_t* encoding, FILE* fout)
+static int meta_encoding_write(const meta_encoding_t* encoding, JSON* json)
 {
 	int result = 0;
 
-	meta_prop_write("encoding", fout);
-	meta_map_write_start(fout);
-	if (!meta_prop_write_str("name", encoding->name, fout))
+	json_write_string("encoding", json);
+	json_write_prop_sep(json);
+	json_write_object_start(json);
+	if (!meta_prop_write_str("name", encoding->name, json))
 	{
 		fprintf(stderr, "Missing encoding name\n");
 		result = -1;
 	}
 	else
 	{
-		meta_map_write_delim(fout);
+		json_write_object_array_sep(json);
 	}
 
 	if (encoding->version > 0 && encoding->version <= VITALY)
 	{
-		int i;
-		meta_prop_write("data", fout);
-		fputc('"', fout);
-		fputc('0', fout);
-		fputc('x', fout);
+		static char str[12];
+		int i, j;
+		j = 0;
+		str[j++] = '0';
+		str[j++] = 'x';
 		for (i = 7; i >= 0; i--)
-			fputc(_chr_[encoding->version - 1][i] + 0x30, fout);
-		fputc('"', fout);
+			str[j++] = _chr_[encoding->version - 1][i] + 0x30;
+		str[j] = 0;
+		json_write_prop_string("data", str, json);
 	}
-	meta_map_write_end(fout);
+	json_write_object_end(json);
 
 	return result;
 }
@@ -346,31 +353,31 @@ static void meta_software_init(meta_software_t* software)
 	meta_hash_init(&software->hash);
 }
 
-static int meta_software_write(const meta_software_t* software, FILE* fout)
+static int meta_software_write(const meta_software_t* software, JSON* json)
 {
 	int result = 0;
-	meta_map_write_start(fout);
-	result |= ~meta_prop_write_str("version", "1.0", fout);
-	meta_map_write_delim(fout);
-	result |= meta_category_write(&software->category, fout);
-	meta_map_write_delim(fout);
-	result |= meta_product_write(&software->product, fout);
-	meta_map_write_delim(fout);
-	result |= meta_camera_write(&software->camera, fout);
-	meta_map_write_delim(fout);
-	result |= meta_build_write(&software->build, fout);
-	meta_map_write_delim(fout);
-	result |= meta_compiler_write(&software->compiler, fout);
-	meta_map_write_delim(fout);
+	json_write_object_start(json);
+	result |= ~meta_prop_write_str("version", "1.0", json);
+	json_write_object_array_sep(json);
+	result |= meta_category_write(&software->category, json);
+	json_write_object_array_sep(json);
+	result |= meta_product_write(&software->product, json);
+	json_write_object_array_sep(json);
+	result |= meta_camera_write(&software->camera, json);
+	json_write_object_array_sep(json);
+	result |= meta_build_write(&software->build, json);
+	json_write_object_array_sep(json);
+	result |= meta_compiler_write(&software->compiler, json);
+	json_write_object_array_sep(json);
 	if (software->source.url != NULL)
 	{
-		result |= meta_source_write(&software->source, fout);
-		meta_map_write_delim(fout);
+		result |= meta_source_write(&software->source, json);
+		json_write_object_array_sep(json);
 	}
-	result |= meta_encoding_write(&software->encoding, fout);
-	meta_map_write_delim(fout);
-	result |= meta_hash_write(&software->hash, fout);
-	meta_map_write_end(fout);
+	result |= meta_encoding_write(&software->encoding, json);
+	json_write_object_array_sep(json);
+	result |= meta_hash_write(&software->hash, json);
+	json_write_object_end(json);
 	return result;
 }
 
@@ -468,6 +475,7 @@ int main(int argc, char const* argv[])
 	char out_path[64];
 	int result;
 	FILE* fout;
+	JSON* json;
 
 	meta_software_init(&software);
 
@@ -520,11 +528,19 @@ int main(int argc, char const* argv[])
 		return -1;
 	}
 
-	if ((result = meta_software_write(&software, fout)))
+	if ((json = json_open(fout)) == NULL)
+	{
+		fprintf(stderr, "Error opening JSON\n");
+		fclose(fout);
+		return -1;
+	}
+
+	if ((result = meta_software_write(&software, json)))
 	{
 		usage();
 	}
 
+	json_close(json);
 	fclose(fout);
 
 	return result;
