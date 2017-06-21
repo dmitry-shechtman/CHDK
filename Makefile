@@ -102,7 +102,7 @@ endif
 
 
 META_DATE = `date +%Y-%m-%dT%H:%M:%SZ -u`
-GEN_SOFTWARE=$(topdir)tools/gen_meta_software$(EXE)
+GEN_SOFTWARE=$(topdir)tools/gen_meta/gen_meta_software$(EXE)
 GEN_SOFTWARE_FLAGS=--product-name CHDK --product-version $(BUILD_NUMBER).$(BUILD_SVNREV) --product-created $(META_DATE) --build-changeset $(BUILD_SVNREV) --camera-platform $(PLATFORM) --camera-revision $(PLATFORMSUB) --source-name $(VER) --compiler-name GCC --compiler-version $(GCC_VERSION) --source-channel $(BUILD_SOURCE)
 
 ifdef STATE
