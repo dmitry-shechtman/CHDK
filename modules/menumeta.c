@@ -52,7 +52,11 @@ void write_menu(const CMenu* menu, char* buf, JSON* json) {
 
         json_write_prop_string("text", lang_str(menu->menu[i].text), json);
 
-        if (menu->menu[i].type == MENUITEM_SUBMENU) {
+        if (menu->menu[i].type == MENUITEM_SEPARATOR) {
+            json_write_object_array_sep(json);
+            json_write_prop_bool("separator", 1, json);
+        }
+        else if (menu->menu[i].type == MENUITEM_SUBMENU) {
             json_write_object_array_sep(json);
             json_write_string("menu", json);
             json_write_prop_sep(json);
