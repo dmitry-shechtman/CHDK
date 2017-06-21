@@ -98,6 +98,8 @@ $Ocpuinfo.o: simple_module.c
 
 $Oshot_histogram.o: shot_histogram.c shot_histogram.h
 
+$Ojson.o: json.c json.h
+
 clean:
 	rm -f $O*.* *.o *.flt *.dump
 	rm -f $(core)/*.o $(core)/main.bin* $(core)/main.elf*
