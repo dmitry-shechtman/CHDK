@@ -17,10 +17,11 @@
 #ifndef GEN_META_H
 #define GEN_META_H
 
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "crypto/includes.h"
-#include "crypto/common.h"
 #include "sha256.h"
 
 void meta_map_write_start(FILE *fout);
