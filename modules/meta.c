@@ -149,12 +149,7 @@ static void meta_hash_str_write(const meta_hash_item_t* hash, JSON* json)
 
 static void meta_hash_item_write(const meta_hash_item_t* hash, JSON* json)
 {
-	int i;
-	char lower[64];
-	for (i = 0; i < strlen(hash->filename); i++)
-		lower[i] = tolower(hash->filename[i]);
-	lower[i] = '\0';
-	json_write_string(lower, json);
+    json_write_string(hash->filename, json);
 	json_write_prop_sep(json);
 	meta_hash_str_write(hash, json);
 }
