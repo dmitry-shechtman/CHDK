@@ -14,16 +14,24 @@
  * GNU General Public License for more details.
  */
 
-#include "gen_meta.h"
+#include "meta.h"
 
 #define BUFFER_SIZE 4096
 
 #define SHA256_HASH_SIZE 32
 
+int meta_prop_write_str(const char* name, const char* value, JSON* json)
+{
+    if (!value)
+        return 0;
+    json_write_prop_string(name, value, json);
+    return -1;
+}
+
 static int sha256(FILE* f, meta_hash_item_t* hash)
 {
 	struct sha256_state ctx;
-	size_t len;
+	int len;
 	unsigned char buffer[BUFFER_SIZE];
 
 	sha256_init(&ctx);
@@ -47,7 +55,9 @@ int meta_hash_calc(const char* basepath, meta_hash_item_t* hash, const char* nam
 
 	if (name == NULL)
 	{
-		fprintf(stderr, "Missing hash name\n");
+#if GEN_META
+        fprintf(stderr, "Missing hash name\n");
+#endif
 		return -1;
 	}
 
@@ -58,7 +68,9 @@ int meta_hash_calc(const char* basepath, meta_hash_item_t* hash, const char* nam
 
 	if ((fin = fopen(in_path, "rb")) == NULL)
 	{
-		fprintf(stderr, "Error opening %s\n", in_path);
+#if GEN_META
+        fprintf(stderr, "Error opening %s\n", in_path);
+#endif
 		return -1;
 	}
 
@@ -71,24 +83,20 @@ int meta_hash_calc(const char* basepath, meta_hash_item_t* hash, const char* nam
 
 	if (result == -1)
 	{
-		fprintf(stderr, "Error processing %s\n", in_path);
+#if GEN_META
+        fprintf(stderr, "Error processing %s\n", in_path);
+#endif
 		return -1;
 	}
 	if (result == -2)
 	{
-		fprintf(stderr, "Invalid hash name: %s\n", name);
+#if GEN_META
+        fprintf(stderr, "Invalid hash name: %s\n", name);
+#endif
 		return -1;
 	}
 
 	return 0;
-}
-
-int meta_prop_write_str(const char* name, const char* value, JSON* json)
-{
-	if (!value)
-		return 0;
-	json_write_prop_string(name, value, json);
-	return -1;
 }
 
 void meta_category_init(meta_category_t* category)
@@ -104,7 +112,9 @@ int meta_category_write(const meta_category_t* category, JSON* json)
 	json_write_object_start(json);
 	if (!meta_prop_write_str("name", category->name, json))
 	{
-		fprintf(stderr, "Missing category name\n");
+#if GEN_META
+        fprintf(stderr, "Missing category name\n");
+#endif
 		result = -1;
 	}
 	json_write_object_end(json);
@@ -131,7 +141,7 @@ static void meta_hash_str_write(const meta_hash_item_t* hash, JSON* json)
 
 static void meta_hash_item_write(const meta_hash_item_t* hash, JSON* json)
 {
-	size_t i;
+	int i;
 	char lower[64];
 	for (i = 0; i < strlen(hash->filename); i++)
 		lower[i] = tolower(hash->filename[i]);
@@ -150,7 +160,7 @@ void meta_hash_init(meta_hash_t* hash)
 
 int meta_hash_write(const meta_hash_t* hash, JSON* json)
 {
-	size_t i;
+	int i;
 	json_write_string("hash", json);
 	json_write_prop_sep(json);
 	json_write_object_start(json);
@@ -175,46 +185,5 @@ int meta_hash_write(const meta_hash_t* hash, JSON* json)
 		json_write_object_end(json);
 	}
 	json_write_object_end(json);
-	return 0;
-}
-
-int cli_flag_bool(const char* name, int argc, char const* argv[], int* i)
-{
-	if (!strcmp(name, argv[*i]))
-	{
-		return -1;
-	}
-	return 0;
-}
-
-int cli_flag_int(const char* name, int argc, char const* argv[], int* i, int* value)
-{
-	if (!strcmp(name, argv[*i]) && *i < argc - 1)
-	{
-		if (*value != 0)
-		{
-			fprintf(stderr, "Value already set\n");
-			return 0;
-		}
-		*value = atoi(argv[*i + 1]);
-		(*i)++;
-		return -1;
-	}
-	return 0;
-}
-
-int cli_flag_str(const char* name, int argc, char const* argv[], int* i, const char** value)
-{
-	if (!strcmp(name, argv[*i]) && *i < argc - 1)
-	{
-		if (*value != NULL && **value != '\0')
-		{
-			fprintf(stderr, "Value already set\n");
-			return 0;
-		}
-		*value = argv[*i + 1];
-		(*i)++;
-		return -1;
-	}
 	return 0;
 }

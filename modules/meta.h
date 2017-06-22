@@ -14,8 +14,8 @@
  * GNU General Public License for more details.
  */
 
-#ifndef GEN_META_H
-#define GEN_META_H
+#ifndef META_H
+#define META_H
 
 #include <ctype.h>
 #include <stdio.h>
@@ -40,7 +40,7 @@ typedef struct
 {
 	const char* filename;
 	unsigned char hash[SHA256_BLOCK_SIZE + 1];
-	size_t size;
+	int size;
 }
 meta_hash_item_t;
 
@@ -57,8 +57,4 @@ meta_hash_t;
 void meta_hash_init(meta_hash_t* hash);
 int meta_hash_write(const meta_hash_t* hash, JSON* json);
 
-int cli_flag_bool(const char* name, int argc, char const* argv[], int* i);
-int cli_flag_int(const char* name, int argc, char const* argv[], int* i, int* value);
-int cli_flag_str(const char* name, int argc, char const* argv[], int* i, const char** value);
-
-#endif /* GEN_META_H */
+#endif /* META_H */

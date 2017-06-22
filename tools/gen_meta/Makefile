@@ -8,25 +8,29 @@ EXES=gen_meta_software$(EXE) #gen_meta_modules$(EXE)
 
 all: $(EXES)
 
-gen_meta_software$(EXE): gen_meta_software.o gen_meta.o sha256.o json.o
+gen_meta_software$(EXE): gen_meta_software.o cli.o meta.o sha256.o json.o
 	@echo $< \-\> $@
 	$(HOSTCC) $(HOSTCFLAGS) -o $@ $^
 
-#gen_meta_modules$(EXE): gen_meta_modules.o gen_meta.o sha256.o json.o
+#gen_meta_modules$(EXE): gen_meta_modules.o cli.o meta.o sha256.o json.o
 #	@echo $< \-\> $@
 #	$(HOSTCC) $(HOSTCFLAGS) -o $@ $^
 
-gen_meta_software.o: gen_meta_software.c gen_meta.h $(modules)/json.h
+gen_meta_software.o: gen_meta_software.c cli.h $(modules)/meta.h $(modules)/json.h
 	@echo $< \-\> $@
 	$(HOSTCC) $(HOSTCFLAGS) -I$(topdir)tools -c -o $@ $<
 
-#gen_meta_modules.o: gen_meta_modules.c gen_meta.h $(modules)/json.h
+#gen_meta_modules.o: gen_meta_modules.c cli.h $(modules)/meta.h $(modules)/json.h
 #	@echo $< \-\> $@
 #	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
 
-gen_meta.o: gen_meta.c gen_meta.h $(modules)/sha256.h $(modules)/json.h
+cli.o: cli.c cli.h
 	@echo $< \-\> $@
 	$(HOSTCC) $(HOSTCFLAGS) -c -o $@ $<
+
+meta.o: $(modules)/meta.c $(modules)/meta.h $(modules)/sha256.h $(modules)/json.h
+	@echo $< \-\> $@
+	$(HOSTCC) $(HOSTCFLAGS) -DGEN_META -c -o $@ $<
 
 json.o: $(modules)/json.c $(modules)/json.h
 	@echo $< \-\> $@

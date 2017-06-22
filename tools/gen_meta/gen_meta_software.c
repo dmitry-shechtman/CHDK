@@ -14,7 +14,8 @@
  * GNU General Public License for more details.
  */
 
-#include "gen_meta.h"
+#include "meta.h"
+#include "cli.h"
 #include "dancingbits.h"
 
 typedef struct
