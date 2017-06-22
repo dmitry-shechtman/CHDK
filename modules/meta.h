@@ -25,6 +25,9 @@
 #include "sha256.h"
 #include "json.h"
 
+#define SHA256_HASH_SIZE 32
+
+char* meta_strtolower(char* str, const char* s);
 int meta_prop_write_str(const char* name, const char* value, JSON* json);
 
 typedef struct
@@ -38,7 +41,7 @@ int meta_category_write(const meta_category_t* category, JSON* json);
 
 typedef struct
 {
-	const char* filename;
+	char* filename;
 	unsigned char hash[SHA256_BLOCK_SIZE + 1];
 	int size;
 }
