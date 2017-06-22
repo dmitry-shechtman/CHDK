@@ -18,7 +18,8 @@ LDOPTS=-nostdlib -Wl,--allow-shlib-undefined -Wl,-T,$(tools)/link-boot.ld -Wl,-N
 FLTS=$Ofselect.flt $Oedgeovr.flt $Ocurves.flt $Ompopup.flt $Opalette.flt $Ogrids.flt $Omdetect.flt $Ozebra.flt \
      $O_dng.flt $Obenchm.flt $Ocalend.flt $O4wins.flt $Omastmind.flt $Oreversi.flt $Osokoban.flt $O_rawop.flt \
      $Otxtread.flt $Omemview.flt $Omodinsp.flt $Otetris.flt $Osnake.flt $Osudoku.flt $O_tbox.flt $O_osd_le.flt \
-     $O_hexbox.flt $Oubasic.flt $Olua.flt $Ocpuinfo.flt $Ouseredit.flt $Oeyefi.flt $Ohisto.flt $Oshothist.flt
+     $O_hexbox.flt $Oubasic.flt $Olua.flt $Ocpuinfo.flt $Ouseredit.flt $Oeyefi.flt $Ohisto.flt $Oshothist.flt \
+     $Omodmeta.flt
 
 # Include optional rules for user defined modules
 # Can be used to add additional modules to FLTS and add the rules to build them
@@ -72,6 +73,7 @@ $Ofselect.flt: $Ogui_fselect.o $Onothumb.o
 $Ouseredit.flt: $Ouser_menu_edit.o
 $Ocpuinfo.flt: $Ocpuinfo.o
 $Oeyefi.flt: $Oeyefi.o $Omd5.o $Osha1.o
+$Omodmeta.flt: $Omodmeta.o $Ometa_modules.o $Ometa.o $Osha256.o $Ojson.o
 
 $Oubasic.flt: $Oubasic.o $Oscript_key_funcs.o $(lubasic)/$Olibubasic.a
 $Olua.flt: $Oluascript.o $Oscript_key_funcs.o $Oscript_shoot_hook.o $Ocordic_math.o $Odbg_dump.o $Orawhookops.o $(llua)/$Oliblua.a
@@ -98,9 +100,11 @@ $Ocpuinfo.o: simple_module.c
 
 $Oshot_histogram.o: shot_histogram.c shot_histogram.h
 
+$Omodmeta.o: modmeta.c meta_modules.h meta.h sha256.h json.h simple_module.c
+$Ometa_modules.o: meta_modules.c meta_modules.h meta.h json.h
 $Ometa.o: meta.c meta.h sha256.h json.h
-$Ojson.o: json.c json.h
 $Osha256.o: sha256.c sha256.h
+$Ojson.o: json.c json.h
 
 clean:
 	rm -f $O*.* *.o *.flt *.dump
