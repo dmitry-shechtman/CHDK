@@ -98,9 +98,10 @@ $Ocpuinfo.o: simple_module.c
 
 $Oshot_histogram.o: shot_histogram.c shot_histogram.h
 
+$Ometa_modules.o: meta_modules.c meta_modules.h meta.h sha256.h json.h
 $Ometa.o: meta.c meta.h sha256.h json.h
-$Ojson.o: json.c json.h
 $Osha256.o: sha256.c sha256.h
+$Ojson.o: json.c json.h
 
 clean:
 	rm -f $O*.* *.o *.flt *.dump
