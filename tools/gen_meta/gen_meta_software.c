@@ -516,7 +516,7 @@ int main(int argc, char const* argv[])
 
 	software.category.name = category;
 
-	hash_item.filename = filename;
+    hash_item.filename = (char*)filename;
 	hash_item.size = 0;
 	software.hash.items = &hash_item;
 	software.hash.count = 1;

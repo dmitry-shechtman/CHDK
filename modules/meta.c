@@ -18,7 +18,15 @@
 
 #define BUFFER_SIZE 4096
 
-#define SHA256_HASH_SIZE 32
+char* meta_strtolower(char* str, const char* s) {
+    int i;
+    if (str) {
+        for (i = 0; s[i]; i++)
+            str[i] = tolower(s[i]);
+        str[i] = 0;
+    }
+    return str;
+}
 
 int meta_prop_write_str(const char* name, const char* value, JSON* json)
 {
@@ -141,12 +149,7 @@ static void meta_hash_str_write(const meta_hash_item_t* hash, JSON* json)
 
 static void meta_hash_item_write(const meta_hash_item_t* hash, JSON* json)
 {
-	int i;
-	char lower[64];
-	for (i = 0; i < strlen(hash->filename); i++)
-		lower[i] = tolower(hash->filename[i]);
-	lower[i] = '\0';
-	json_write_string(lower, json);
+    json_write_string(hash->filename, json);
 	json_write_prop_sep(json);
 	meta_hash_str_write(hash, json);
 }
