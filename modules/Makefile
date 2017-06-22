@@ -98,6 +98,8 @@ $Ocpuinfo.o: simple_module.c
 
 $Oshot_histogram.o: shot_histogram.c shot_histogram.h
 
+$Ometa.o: meta.c meta.h
+$Osha256.o: sha256.c sha256.h
 $Ojson.o: json.c json.h
 
 clean:
