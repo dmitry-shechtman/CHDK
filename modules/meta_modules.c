@@ -1,48 +1,29 @@
 #include <stdlib.h>
 
+#include "versions.h"
 #include "flt.h"
 #include "meta_modules.h"
 #include "sha256.h"
-
-#define MODULES_PATH            "A/CHDK/MODULES/"       // Module folder, module files are only loaded from here
 
 #ifndef HASH_BUFFER_SIZE
 #define HASH_BUFFER_SIZE 4096
 #endif
 
-// Generate a unique hash of the full module path
-// Can't use lang_strhash31 as we want case-insensitive hashes here
-// (File browser passes upper case names, modules names in modules.c are lower case
-static unsigned int hash_module_name(char *str)
-{
-    unsigned int hash = 5381;
-    int c;
-
-    // djb2 hash algorithm (Dan Bernstein - http://cr.yp.to/djb.html)
-    while ((c = *str++) != 0)
-        hash = ((hash << 5) + hash) ^ toupper(c); /* hash * 33 xor c */
-
-    return hash;
-}
-
-// Get full path of module file and hash of path
-// If path specified in name, just copy it, otherwise prepend MODULES_PATH
-// No validation on size of path variable - make sure you pass a buffer with enough space
-// Returns hash value of path for comparison to loaded modules
-static unsigned int get_module_path(char *path, const char *name)
+static void get_module_path(char *path, const char* modPath, const char *name)
 {
     // Check if full path supplied?
     if ((tolower(name[0]) != 'a') || (name[1] != '/'))
-        strcpy(path, MODULES_PATH);
+    {
+        strcpy(path, modPath);
+        strcat(path, "/");
+    }
     else
         path[0] = 0;
     // Add supplied name to path
     strcat(path, name);
-
-    return hash_module_name(path);
 }
 
-int get_module_info_and_hash(const char *name, ModuleInfo *mi, char *modName, int modNameLen, unsigned char* sha256)
+int get_module_info_and_hash(const char* modPath, const char *name, ModuleInfo *mi, char *modName, int modNameLen, unsigned char* sha256)
 {
     memset(mi, 0, sizeof(ModuleInfo));
     if (modName)
@@ -50,7 +31,7 @@ int get_module_info_and_hash(const char *name, ModuleInfo *mi, char *modName, in
 
     // Get full path to module file, and hash of path
     char path[60];
-    get_module_path(path, name);
+    get_module_path(path, modPath, name);
 
     // open file
     FILE* f;
@@ -131,7 +112,7 @@ int meta_modules_get(meta_modules_t* modules, const char* path, const char* crea
     while ((de = readdir(d))) {
         if (de->d_name[0] != 0xE5 && strcmp(de->d_name, ".") && strcmp(de->d_name, "..") && strcmp(de->d_name, "CFG")) {
             item = &modules->modules[i++];
-            get_module_info_and_hash(de->d_name, &mi, modName, sizeof(modName), sha256);
+            get_module_info_and_hash(path, de->d_name, &mi, modName, sizeof(modName), sha256);
             if ((item->key = malloc(strlen(de->d_name) + 1))) {
                 meta_strtolower(item->key, de->d_name);
             }

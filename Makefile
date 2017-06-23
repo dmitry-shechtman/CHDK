@@ -103,7 +103,9 @@ endif
 
 META_DATE = `date +%Y-%m-%dT%H:%M:%SZ -u`
 GEN_SOFTWARE=$(topdir)tools/gen_meta/gen_meta_software$(EXE)
+GEN_MODULES=$(topdir)tools/gen_meta/gen_meta_modules$(EXE)
 GEN_SOFTWARE_FLAGS=--product-name CHDK --product-version $(BUILD_NUMBER).$(BUILD_SVNREV) --product-created $(META_DATE) --build-changeset $(BUILD_SVNREV) --camera-platform $(PLATFORM) --camera-revision $(PLATFORMSUB) --source-name $(VER) --compiler-name GCC --compiler-version $(GCC_VERSION) --source-channel $(BUILD_SOURCE)
+GEN_MODULES_FLAGS=--product-name CHDK --product-created $(META_DATE) --build-changeset $(BUILD_SVNREV)
 
 ifdef STATE
 GEN_SOFTWARE_FLAGS+= --build-status $(STATE)
@@ -209,6 +211,7 @@ firzipsubcomplete: infoline clean firsub
 	LANG=C echo "CHDK-$(VER) for $(TARGET_CAM) fw:$(TARGET_FW) build:$(BUILD_NUMBER)-$(BUILD_SVNREV)$(STATE) date:`$(ZIPDATE)`" | \
 	zip -9jz $(bin)/$(ZIP_SMALL) $(bin)/DISKBOOT.BIN $(FW_UPD_FILE) $(doc)/changelog.txt $(doc)/readme.txt $(doc)/camnotes.txt > $(DEVNULL)
 	@echo \-\> $(ZIP_FULL)
+	$(GEN_MODULES) PS $(chdk)/MODULES $(GEN_MODULES_FLAGS)
 	cp -f $(bin)/$(ZIP_SMALL) $(bin)/$(ZIP_FULL)
 	zip -9 $(bin)/$(ZIP_SMALL) $(chdk)/MODULES/* > $(DEVNULL)
 	$(GEN_SOFTWARE) PS DISKBOOT.BIN $(bin) $(GEN_SOFTWARE_FLAGS)
