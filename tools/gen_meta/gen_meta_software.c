@@ -44,6 +44,13 @@ static int meta_software_category_write(const meta_category_t* category, JSON* j
     return meta_category_write(category, json);
 }
 
+static int meta_software_hash_write(const meta_hash_t* hash, JSON* json)
+{
+    json_write_string("hash", json);
+    json_write_prop_sep(json);
+    return meta_hash_write(hash, json);
+}
+
 static int meta_product_write(const meta_product_t* product, JSON* json)
 {
 	int result = 0;
@@ -384,7 +391,7 @@ static int meta_software_write(const meta_software_t* software, JSON* json)
 	}
 	result |= meta_encoding_write(&software->encoding, json);
 	json_write_object_array_sep(json);
-	result |= meta_hash_write(&software->hash, json);
+	result |= meta_software_hash_write(&software->hash, json);
 	json_write_object_end(json);
 	return result;
 }
