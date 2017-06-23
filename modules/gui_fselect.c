@@ -162,9 +162,11 @@ static struct mpopup_item popup_rawop[]= {
         { 0,                    0 },
 };
 
-#define MPOPUP_HASH_SHA256      1
+#define MPOPUP_HASH_SHA1        1
+#define MPOPUP_HASH_SHA256      2
 
 static struct mpopup_item popup_hash[] = {
+    { MPOPUP_HASH_SHA1,   (int)"SHA-1" },
     { MPOPUP_HASH_SHA256, (int)"SHA-256" },
     { 0, 0 }
 };
@@ -1367,7 +1369,18 @@ typedef struct
 }
 fselect_hash_t;
 
+#include "sha1.h"
 #include "sha256.h"
+
+static struct SHA1Context sha1_ctx;
+
+static fselect_hash_t sha1 = {
+    20,
+    &sha1_ctx,
+    (fselect_hash_init*)SHA1Init,
+    (fselect_hash_process*)SHA1Update,
+    (fselect_hash_done*)SHA1Final
+};
 
 static struct sha256_state sha256_ctx;
 
@@ -1385,8 +1398,7 @@ static int fselect_hash_calc(fselect_hash_t hash, const char* hash_name)
     static unsigned char buf[128];
     static char str[256];
     int len;
-    int i, j, index;
-    int width = camera_screen.width / FONT_WIDTH - 2;
+    int i, index;
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
     if (!(f = fopen(selected_file, "rb")))
@@ -1409,15 +1421,10 @@ static int fselect_hash_calc(fselect_hash_t hash, const char* hash_name)
     fclose(f);
 
     index = 0;
-    for (i = 0, j = 0; i < hash.size; i++)
+    for (i = 0; i < hash.size; i++)
     {
         str[index++] = fselect_hash_nibble(buf[i] / 16);
         str[index++] = fselect_hash_nibble(buf[i] % 16);
-        if ((++j) == width)
-        {
-            str[index++] = '\n';
-            j = 0;
-        }
     }
     str[index++] = 0;
 
@@ -1429,6 +1436,9 @@ static int fselect_hash_calc(fselect_hash_t hash, const char* hash_name)
 static void fselect_mpopup_hash_cb(unsigned int actn)
 {
     switch (actn) {
+        case MPOPUP_HASH_SHA1:
+            fselect_hash_calc(sha1, "SHA-1");
+            break;
         case MPOPUP_HASH_SHA256:
             fselect_hash_calc(sha256, "SHA-256");
             break;

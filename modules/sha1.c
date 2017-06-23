@@ -13,7 +13,7 @@
   * modified for CHDK by buttim@hotmail.com
  */
 
-#include "eyefi.h"
+#include "sha1.h"
 
 #include <string.h>
 //#include <unistd.h>
@@ -368,20 +368,6 @@ void pbkdf2_sha1(const char *passphrase, const char *ssid, size_t ssid_len,
 	}
 }
 
-
-struct SHA1Context {
-	u32 state[5];
-	u32 count[2];
-	unsigned char buffer[64];
-};
-
-typedef struct SHA1Context SHA1_CTX;
-
-#ifndef CONFIG_CRYPTO_INTERNAL
-static void SHA1Init(struct SHA1Context *context);
-static void SHA1Update(struct SHA1Context *context, const void *data, u32 len);
-static void SHA1Final(unsigned char digest[20], struct SHA1Context *context);
-#endif /* CONFIG_CRYPTO_INTERNAL */
 static void SHA1Transform(u32 state[5], const unsigned char buffer[64]);
 
 /**
@@ -400,7 +386,7 @@ void sha1_vector(size_t num_elem, const u8 *addr[], const size_t *len,
 	SHA1Init(&ctx);
 	for (i = 0; i < num_elem; i++)
 		SHA1Update(&ctx, addr[i], len[i]);
-	SHA1Final(mac, &ctx);
+    SHA1Final(&ctx, mac);
 }
 
 
@@ -658,7 +644,7 @@ void SHA1Init(SHA1_CTX* context)
 
 /* Run your data through this. */
 
-void SHA1Update(SHA1_CTX* context, const void *_data, u32 len)
+int SHA1Update(SHA1_CTX* context, const void *_data, u32 len)
 {
 	u32 i, j;
 	const unsigned char *data = _data;
@@ -683,12 +669,13 @@ void SHA1Update(SHA1_CTX* context, const void *_data, u32 len)
 #ifdef VERBOSE
 	SHAPrintContext(context, "after ");
 #endif
+    return 0;
 }
 
 
 /* Add padding and return the message digest. */
 
-void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
+int SHA1Final(SHA1_CTX* context, unsigned char digest[20])
 {
 	u32 i;
 	unsigned char finalcount[8];
@@ -715,6 +702,7 @@ void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
 	memset(context->state, 0, 20);
 	memset(context->count, 0, 8);
 	memset(finalcount, 0, 8);
+    return 0;
 }
 
 /* ===== end - public domain SHA1 implementation ===== */
