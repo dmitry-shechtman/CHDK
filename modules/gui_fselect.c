@@ -162,10 +162,12 @@ static struct mpopup_item popup_rawop[]= {
         { 0,                    0 },
 };
 
-#define MPOPUP_HASH_SHA1        1
-#define MPOPUP_HASH_SHA256      2
+#define MPOPUP_HASH_MD5         1
+#define MPOPUP_HASH_SHA1        2
+#define MPOPUP_HASH_SHA256      3
 
 static struct mpopup_item popup_hash[] = {
+    { MPOPUP_HASH_MD5,    (int)"MD5" },
     { MPOPUP_HASH_SHA1,   (int)"SHA-1" },
     { MPOPUP_HASH_SHA256, (int)"SHA-256" },
     { 0, 0 }
@@ -1369,8 +1371,19 @@ typedef struct
 }
 fselect_hash_t;
 
+#include "md5.h"
 #include "sha1.h"
 #include "sha256.h"
+
+static struct MD5Context md5_ctx;
+
+static fselect_hash_t md5 = {
+    16,
+    &md5_ctx,
+    (fselect_hash_init*)MD5Init,
+    (fselect_hash_process*)MD5Update,
+    (fselect_hash_done*)MD5Final
+};
 
 static struct SHA1Context sha1_ctx;
 
@@ -1436,6 +1449,9 @@ static int fselect_hash_calc(fselect_hash_t hash, const char* hash_name)
 static void fselect_mpopup_hash_cb(unsigned int actn)
 {
     switch (actn) {
+        case MPOPUP_HASH_MD5:
+            fselect_hash_calc(md5, "MD5");
+            break;
         case MPOPUP_HASH_SHA1:
             fselect_hash_calc(sha1, "SHA-1");
             break;

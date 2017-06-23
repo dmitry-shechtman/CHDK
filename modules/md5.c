@@ -13,7 +13,7 @@
   * modified for CHDK by buttim@hotmail.com
  */
 
-#include "eyefi.h"
+#include "md5.h"
 
 #include <string.h>
 //#include <unistd.h>
@@ -105,27 +105,7 @@ void hmac_md5(const u8 *key, size_t key_len, const u8 *data, size_t data_len,
 	hmac_md5_vector(key, key_len, 1, &data, &data_len, mac);
 }
 
-#define INTERNAL_MD5 1
-
-#ifdef INTERNAL_MD5
-
-struct MD5Context {
-	u32 buf[4];
-	u32 bits[2];
-	u8 in[64];
-};
-
-#ifndef CONFIG_CRYPTO_INTERNAL
-static void MD5Init(struct MD5Context *context);
-static void MD5Update(struct MD5Context *context, unsigned char const *buf,
-			  unsigned len);
-static void MD5Final(unsigned char digest[16], struct MD5Context *context);
-#endif /* CONFIG_CRYPTO_INTERNAL */
 static void MD5Transform(u32 buf[4], u32 const in[16]);
-
-
-typedef struct MD5Context MD5_CTX;
-
 
 /**
  * md5_vector - MD5 hash for data vector
@@ -142,7 +122,7 @@ void md5_vector(size_t num_elem, const u8 *addr[], const size_t *len, u8 *mac)
 	MD5Init(&ctx);
 	for (i = 0; i < num_elem; i++)
 		MD5Update(&ctx, addr[i], len[i]);
-	MD5Final(mac, &ctx);
+    MD5Final(&ctx, mac);
 }
 
 
@@ -201,7 +181,7 @@ void MD5Init(struct MD5Context *ctx)
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void MD5Update(struct MD5Context *ctx, unsigned char const *buf, unsigned len)
+int MD5Update(struct MD5Context *ctx, unsigned char const *buf, unsigned len)
 {
     u32 t;
 
@@ -222,7 +202,7 @@ void MD5Update(struct MD5Context *ctx, unsigned char const *buf, unsigned len)
 	t = 64 - t;
 	if (len < t) {
 	    os_memcpy(p, buf, len);
-	    return;
+	    return 0;
 	}
 	os_memcpy(p, buf, t);
 	byteReverse(ctx->in, 16);
@@ -243,13 +223,15 @@ void MD5Update(struct MD5Context *ctx, unsigned char const *buf, unsigned len)
     /* Handle any remaining bytes of data. */
 
     os_memcpy(ctx->in, buf, len);
+
+    return 0;
 }
 
 /*
  * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
-void MD5Final(unsigned char digest[16], struct MD5Context *ctx)
+int MD5Final(struct MD5Context *ctx, unsigned char digest[16])
 {
     unsigned count;
     unsigned char *p;
@@ -288,6 +270,8 @@ void MD5Final(unsigned char digest[16], struct MD5Context *ctx)
     byteReverse((unsigned char *) ctx->buf, 4);
     os_memcpy(digest, ctx->buf, 16);
     os_memset(ctx, 0, sizeof(struct MD5Context));	/* In case it's sensitive */
+
+    return 0;
 }
 
 /* The four core functions - F1 is optimized somewhat */
@@ -390,5 +374,3 @@ static void MD5Transform(u32 buf[4], u32 const in[16])
     buf[3] += d;
 }
 /* ===== end - public domain MD5 implementation ===== */
-
-#endif /* INTERNAL_MD5 */
