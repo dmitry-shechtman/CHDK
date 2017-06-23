@@ -37,6 +37,13 @@ static void meta_product_init(meta_product_t* product)
 	product->created = NULL;
 }
 
+static int meta_software_category_write(const meta_category_t* category, JSON* json)
+{
+    json_write_string("category", json);
+    json_write_prop_sep(json);
+    return meta_category_write(category, json);
+}
+
 static int meta_product_write(const meta_product_t* product, JSON* json)
 {
 	int result = 0;
@@ -360,7 +367,7 @@ static int meta_software_write(const meta_software_t* software, JSON* json)
 	json_write_object_start(json);
 	result |= ~meta_prop_write_str("version", "1.0", json);
 	json_write_object_array_sep(json);
-	result |= meta_category_write(&software->category, json);
+    result |= meta_software_category_write(&software->category, json);
 	json_write_object_array_sep(json);
 	result |= meta_product_write(&software->product, json);
 	json_write_object_array_sep(json);
