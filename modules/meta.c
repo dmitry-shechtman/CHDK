@@ -162,8 +162,6 @@ void meta_hash_init(meta_hash_t* hash)
 int meta_hash_write(const meta_hash_t* hash, JSON* json)
 {
 	int i;
-	json_write_string("hash", json);
-	json_write_prop_sep(json);
 	json_write_object_start(json);
 	if (hash->name != NULL)
 	{

@@ -16,7 +16,7 @@ gen_meta_software$(EXE): gen_meta_software.o cli.o meta.o sha256.o json.o
 #	@echo $< \-\> $@
 #	$(HOSTCC) $(HOSTCFLAGS) -o $@ $^
 
-gen_meta_software.o: gen_meta_software.c cli.h $(modules)/meta.h $(modules)/json.h
+gen_meta_software.o: gen_meta_software.c cli.h $(modules)/meta.h $(modules)/sha256.h $(modules)/json.h
 	@echo $< \-\> $@
 	$(HOSTCC) $(HOSTCFLAGS) -I$(topdir)tools -c -o $@ $<
 
