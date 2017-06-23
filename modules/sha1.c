@@ -386,7 +386,7 @@ void sha1_vector(size_t num_elem, const u8 *addr[], const size_t *len,
 	SHA1Init(&ctx);
 	for (i = 0; i < num_elem; i++)
 		SHA1Update(&ctx, addr[i], len[i]);
-    SHA1Final(&ctx, mac);
+	SHA1Final(&ctx, mac);
 }
 
 
@@ -669,7 +669,7 @@ int SHA1Update(SHA1_CTX* context, const void *_data, u32 len)
 #ifdef VERBOSE
 	SHAPrintContext(context, "after ");
 #endif
-    return 0;
+	return 0;
 }
 
 
@@ -702,7 +702,7 @@ int SHA1Final(SHA1_CTX* context, unsigned char digest[20])
 	memset(context->state, 0, 20);
 	memset(context->count, 0, 8);
 	memset(finalcount, 0, 8);
-    return 0;
+	return 0;
 }
 
 /* ===== end - public domain SHA1 implementation ===== */

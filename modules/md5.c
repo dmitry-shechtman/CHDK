@@ -122,7 +122,7 @@ void md5_vector(size_t num_elem, const u8 *addr[], const size_t *len, u8 *mac)
 	MD5Init(&ctx);
 	for (i = 0; i < num_elem; i++)
 		MD5Update(&ctx, addr[i], len[i]);
-    MD5Final(&ctx, mac);
+	MD5Final(&ctx, mac);
 }
 
 
