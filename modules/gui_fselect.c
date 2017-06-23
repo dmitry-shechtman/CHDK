@@ -1364,12 +1364,14 @@ fselect_hash_t;
 #include "md5.h"
 #include "sha1.h"
 #include "sha256.h"
+#include "sha512.h"
 
 static struct MD5Context md5_ctx;
 static struct SHA1Context sha1_ctx;
 static struct sha256_state sha256_ctx;
+static struct sha512_state sha512_ctx;
 
-#define HASH_TYPE_COUNT 3
+#define HASH_TYPE_COUNT 4
 
 static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
 {
@@ -1396,14 +1398,22 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
         (fselect_hash_init*)sha256_init,
         (fselect_hash_process*)sha256_process,
         (fselect_hash_done*)sha256_done
+    },
+    {
+        "SHA-512",
+        64,
+        &sha512_ctx,
+        (fselect_hash_init*)sha512_init,
+        (fselect_hash_process*)sha512_process,
+        (fselect_hash_done*)sha512_done
     }
 };
 
 static int fselect_hash_calc()
 {
     FILE *f;
-    static unsigned char buf[HASH_TYPE_COUNT][128];
-    static char str[256];
+    static unsigned char buf[HASH_TYPE_COUNT][256];
+    static char str[1024];
     int len;
     int h, i, index;
 
@@ -1413,6 +1423,7 @@ static int fselect_hash_calc()
         gui_mbox_init((int)"Calculate hashes", LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
+
     if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
     {
         fclose(f);
