@@ -162,14 +162,10 @@ static struct mpopup_item popup_rawop[]= {
         { 0,                    0 },
 };
 
-#define MPOPUP_HASH_MD5         1
-#define MPOPUP_HASH_SHA1        2
-#define MPOPUP_HASH_SHA256      3
-
 static struct mpopup_item popup_hash[] = {
-    { MPOPUP_HASH_MD5,    (int)"MD5" },
-    { MPOPUP_HASH_SHA1,   (int)"SHA-1" },
-    { MPOPUP_HASH_SHA256, (int)"SHA-256" },
+    { 1, (int)"MD5" },
+    { 2, (int)"SHA-1" },
+    { 3, (int)"SHA-256" },
     { 0, 0 }
 };
 
@@ -1363,6 +1359,7 @@ typedef int fselect_hash_done(void*, const unsigned char*);
 
 typedef struct
 {
+    const char* name;
     unsigned int size;
     void* ctx;
     fselect_hash_init *init;
@@ -1376,36 +1373,40 @@ fselect_hash_t;
 #include "sha256.h"
 
 static struct MD5Context md5_ctx;
-
-static fselect_hash_t md5 = {
-    16,
-    &md5_ctx,
-    (fselect_hash_init*)MD5Init,
-    (fselect_hash_process*)MD5Update,
-    (fselect_hash_done*)MD5Final
-};
-
 static struct SHA1Context sha1_ctx;
-
-static fselect_hash_t sha1 = {
-    20,
-    &sha1_ctx,
-    (fselect_hash_init*)SHA1Init,
-    (fselect_hash_process*)SHA1Update,
-    (fselect_hash_done*)SHA1Final
-};
-
 static struct sha256_state sha256_ctx;
 
-static fselect_hash_t sha256 = {
-    32,
-    &sha256_ctx,
-    (fselect_hash_init*)sha256_init,
-    (fselect_hash_process*)sha256_process,
-    (fselect_hash_done*)sha256_done
+#define HASH_TYPE_COUNT 3
+
+static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
+{
+    {
+        "MD5",
+        16,
+        &md5_ctx,
+        (fselect_hash_init*)MD5Init,
+        (fselect_hash_process*)MD5Update,
+        (fselect_hash_done*)MD5Final
+    },
+    {
+        "SHA-1",
+        20,
+        &sha1_ctx,
+        (fselect_hash_init*)SHA1Init,
+        (fselect_hash_process*)SHA1Update,
+        (fselect_hash_done*)SHA1Final
+    },
+    {
+        "SHA-256",
+        32,
+        &sha256_ctx,
+        (fselect_hash_init*)sha256_init,
+        (fselect_hash_process*)sha256_process,
+        (fselect_hash_done*)sha256_done
+    }
 };
 
-static int fselect_hash_calc(fselect_hash_t hash, const char* hash_name)
+static int fselect_hash_calc(fselect_hash_t hash)
 {
     FILE *f;
     static unsigned char buf[128];
@@ -1416,13 +1417,13 @@ static int fselect_hash_calc(fselect_hash_t hash, const char* hash_name)
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
     if (!(f = fopen(selected_file, "rb")))
     {
-        gui_mbox_init((int)hash_name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        gui_mbox_init((int)hash.name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
     if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
     {
         fclose(f);
-        gui_mbox_init((int)hash_name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        gui_mbox_init((int)hash.name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
 
@@ -1441,24 +1442,15 @@ static int fselect_hash_calc(fselect_hash_t hash, const char* hash_name)
     }
     str[index++] = 0;
 
-    gui_mbox_init((int)hash_name, (int)str, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+    gui_mbox_init((int)hash.name, (int)str, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
 
     return 1;
 }
 
 static void fselect_mpopup_hash_cb(unsigned int actn)
 {
-    switch (actn) {
-        case MPOPUP_HASH_MD5:
-            fselect_hash_calc(md5, "MD5");
-            break;
-        case MPOPUP_HASH_SHA1:
-            fselect_hash_calc(sha1, "SHA-1");
-            break;
-        case MPOPUP_HASH_SHA256:
-            fselect_hash_calc(sha256, "SHA-256");
-            break;
-    }
+    if (actn > 0)
+        fselect_hash_calc(fselect_hash[actn - 1]);
 }
 
 static void mkdir_cb(const char* name)
