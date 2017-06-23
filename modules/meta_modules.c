@@ -26,7 +26,7 @@ static void get_module_path(char *path, const char* modPath, const char *name)
     strcat(path, name);
 }
 
-int get_module_info_and_hash(const char* modPath, const char *name, ModuleInfo *mi, char *modName, int modNameLen, unsigned char* sha256)
+int get_module_info_and_hash(const char* modPath, const char *name, ModuleInfo *mi, char *modName, int modNameLen, unsigned char sha256[SHA256_HASH_SIZE])
 {
     memset(mi, 0, sizeof(ModuleInfo));
     if (modName)
@@ -82,18 +82,19 @@ int get_module_info_and_hash(const char* modPath, const char *name, ModuleInfo *
 
 static char* module_types[MODULE_TYPE_COUNT] = { 0, "extension", "game", "tool", "script" };
 
-int meta_modules_get(meta_modules_t* modules, const char* path, const char* created, const char* changeset) {
+int meta_modules_get(meta_modules_t* modules, const char* modPath, const char* created, const char* changeset) {
     DIR *d;
     struct dirent *de;
     static ModuleInfo mi;
     static char modName[33];
-    static unsigned char sha256[SHA256_BLOCK_SIZE];
+    static const char hash_name[] = "sha256";
+    static unsigned char sha256[SHA256_HASH_SIZE];
     meta_modules_item_t* item;
     int i = 0;
-    if (!modules || !path) {
+    if (!modules || !modPath) {
         return 0;
     }
-    if (!(d = opendir(path))) {
+    if (!(d = opendir(modPath))) {
         return 0;
     }
     modules->count = 0;
@@ -106,7 +107,7 @@ int meta_modules_get(meta_modules_t* modules, const char* path, const char* crea
     if (!(modules->modules = malloc(modules->count * sizeof(meta_modules_item_t)))) {
         return 0;
     }
-    if (!(d = opendir(path))) {
+    if (!(d = opendir(modPath))) {
         free(modules->modules);
         modules->modules = 0;
         modules->count = 0;
@@ -115,7 +116,7 @@ int meta_modules_get(meta_modules_t* modules, const char* path, const char* crea
     while ((de = readdir(d))) {
         if (de->d_name[0] != 0xE5 && strcmp(de->d_name, ".") && strcmp(de->d_name, "..") && strcmp(de->d_name, "CFG")) {
             item = &modules->modules[i++];
-            get_module_info_and_hash(path, de->d_name, &mi, modName, sizeof(modName), sha256);
+            get_module_info_and_hash(modPath, de->d_name, &mi, modName, sizeof(modName), sha256);
             if ((item->key = malloc(strlen(de->d_name) + 1))) {
                 meta_strtolower(item->key, de->d_name);
             }
@@ -134,7 +135,7 @@ int meta_modules_get(meta_modules_t* modules, const char* path, const char* crea
             item->value.imageId = mi.symbol;
             item->value.created = created;
             item->value.changeset = changeset;
-            item->value.hash.name = "sha256";
+            item->value.hash.name = hash_name;
             if ((item->value.hash.items = malloc(sizeof(meta_hash_item_t)))) {
                 if ((item->value.hash.items[0].filename = malloc(strlen(de->d_name) + 14))) {
                     sprintf(item->value.hash.items[0].filename, "CHDK\\MODULES\\%s", item->key);
@@ -146,7 +147,7 @@ int meta_modules_get(meta_modules_t* modules, const char* path, const char* crea
         }
     }
     closedir(d);
-    return 1;
+    return -1;
 }
 
 void meta_modules_free(meta_modules_t* modules) {

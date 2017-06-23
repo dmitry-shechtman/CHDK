@@ -35,6 +35,8 @@ typedef struct {
 }
 meta_modules_t;
 
+int get_module_info_and_hash(const char* modPath, const char *name, ModuleInfo *mi, char *modName, int modNameLen, unsigned char sha256[SHA256_HASH_SIZE]);
+
 int meta_modules_get(meta_modules_t* modules, const char* path, const char* created, const char* changeset);
 void meta_modules_free(meta_modules_t* modules);
 void meta_modules_write(meta_modules_t* modules, JSON* json);
