@@ -126,6 +126,7 @@ static char raw_operation;      // info for process_raw_files() RAW_OPERATION_AV
 #define MPOPUP_RENAME           0x0800
 #define MPOPUP_EDITOR           0x1000
 #define MPOPUP_CHDK_REPLACE     0x2000
+#define MPOPUP_HASH             0x4000
 
 static struct mpopup_item popup[]= {
         { MPOPUP_CUT,           LANG_POPUP_CUT    },
@@ -142,6 +143,7 @@ static struct mpopup_item popup[]= {
         { MPOPUP_EDITOR,        (int)"Edit" },
         { MPOPUP_CHDK_REPLACE,  (int)"Set this CHDK" },
         { MPOPUP_RAWOPS,        (int)"Raw ops ->" },
+        { MPOPUP_HASH,          (int)"Calculate hash ->" },
         { 0,                    0 },
 };
 
@@ -158,6 +160,13 @@ static struct mpopup_item popup_rawop[]= {
         { MPOPUP_SUBTRACT,      LANG_POPUP_SUB_FROM_MARKED  },
         { MPOPUP_DNG_TO_CRW,    (int)"DNG -> CHDK RAW"},
         { 0,                    0 },
+};
+
+#define MPOPUP_HASH_SHA256      1
+
+static struct mpopup_item popup_hash[] = {
+    { MPOPUP_HASH_SHA256, (int)"SHA-256" },
+    { 0, 0 }
 };
 
 //-------------------------------------------------------------------
@@ -1338,6 +1347,94 @@ static void fselect_mpopup_rawop_cb(unsigned int actn)
     }
 }
 
+//-------------------------------------------------------------------
+static char fselect_hash_nibble(char c)
+{
+    return c <= 9 ? c + 0x30 : c + 0x57;
+}
+
+typedef void fselect_hash_init(void*);
+typedef int fselect_hash_process(void*, const unsigned char*, unsigned long);
+typedef int fselect_hash_done(void*, const unsigned char*);
+
+typedef struct
+{
+    unsigned int size;
+    void* ctx;
+    fselect_hash_init *init;
+    fselect_hash_process *process;
+    fselect_hash_done *done;
+}
+fselect_hash_t;
+
+#include "sha256.h"
+
+static struct sha256_state sha256_ctx;
+
+static fselect_hash_t sha256 = {
+    32,
+    &sha256_ctx,
+    (fselect_hash_init*)sha256_init,
+    (fselect_hash_process*)sha256_process,
+    (fselect_hash_done*)sha256_done
+};
+
+static int fselect_hash_calc(fselect_hash_t hash, const char* hash_name)
+{
+    FILE *f;
+    static unsigned char buf[128];
+    static char str[256];
+    int len;
+    int i, j, index;
+    int width = camera_screen.width / FONT_WIDTH - 2;
+
+    sprintf(selected_file, "%s/%s", items.dir, selected->name);
+    if (!(f = fopen(selected_file, "rb")))
+    {
+        gui_mbox_init((int)hash_name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        return 0;
+    }
+    if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
+    {
+        fclose(f);
+        gui_mbox_init((int)hash_name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        return 0;
+    }
+
+    hash.init(hash.ctx);
+    while ((len = fread(ubuf, 1, COPY_BUF_SIZE, f)) > 0)
+        hash.process(hash.ctx, ubuf, len);
+    hash.done(hash.ctx, buf);
+
+    fclose(f);
+
+    index = 0;
+    for (i = 0, j = 0; i < hash.size; i++)
+    {
+        str[index++] = fselect_hash_nibble(buf[i] / 16);
+        str[index++] = fselect_hash_nibble(buf[i] % 16);
+        if ((++j) == width)
+        {
+            str[index++] = '\n';
+            j = 0;
+        }
+    }
+    str[index++] = 0;
+
+    gui_mbox_init((int)hash_name, (int)str, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+
+    return 1;
+}
+
+static void fselect_mpopup_hash_cb(unsigned int actn)
+{
+    switch (actn) {
+        case MPOPUP_HASH_SHA256:
+            fselect_hash_calc(sha256, "SHA-256");
+            break;
+    }
+}
+
 static void mkdir_cb(const char* name)
 {
     if (name)
@@ -1362,6 +1459,7 @@ static void rename_cb(const char* name)
 }
 
 static int mpopup_rawop_flag;
+static int mpopup_hash_flag;
 
 //-------------------------------------------------------------------
 // Return 1 if A/DCIM or A/RAW selected, 0 otherwise
@@ -1433,6 +1531,11 @@ static void fselect_mpopup_cb(unsigned int actn)
             gui_mbox_init((int)"Replacing CHDK", (int)"Do you want to replace current CHDK with this file",
                           MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_chdk_replace_cb);
             break;
+
+        case MPOPUP_HASH:
+            libmpopup->show_popup(popup_hash, mpopup_hash_flag, fselect_mpopup_hash_cb);
+            break;
+
         case MPOPUP_EDITOR:
             gui_mbox_init((int)"Editor", (int)"edit", MBOX_BTN_OK|MBOX_TEXT_CENTER, NULL);
             break;
@@ -1517,6 +1620,7 @@ int gui_fselect_kbd_process()
 
                 i = MPOPUP_SELINV|MPOPUP_MKDIR;
                 mpopup_rawop_flag = 0;
+                mpopup_hash_flag = ~0;
 
                 if (marked_count > 0)
                 {
@@ -1553,6 +1657,9 @@ int gui_fselect_kbd_process()
 
                 if (chk_ext(selected->name, "bin")) //If item is *.bin file
                     i |= MPOPUP_CHDK_REPLACE;
+
+                if (!selected->isdir)
+                    i |= MPOPUP_HASH;
 
                 if (mpopup_rawop_flag)
                     i |= MPOPUP_RAWOPS;

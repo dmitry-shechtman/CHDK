@@ -68,7 +68,7 @@ $Omodinsp.flt: $Omodule_inspector.o
 $O_dng.flt: $Odng.o $Oreversebytes.o
 $O_rawop.flt: $Oraw_merge.o $Oreversebytes.o
 $O_osd_le.flt: $Ogui_osd_edit.o
-$Ofselect.flt: $Ogui_fselect.o $Onothumb.o
+$Ofselect.flt: $Ogui_fselect.o $Onothumb.o $Osha256.o
 $Ouseredit.flt: $Ouser_menu_edit.o
 $Ocpuinfo.flt: $Ocpuinfo.o
 $Oeyefi.flt: $Oeyefi.o $Omd5.o $Osha1.o
@@ -97,6 +97,8 @@ $Ogui_snake.o: games/gui_snake.c games/simple_game.c
 $Ocpuinfo.o: simple_module.c
 
 $Oshot_histogram.o: shot_histogram.c shot_histogram.h
+
+$Osha256.o: sha256.c sha256.h
 
 clean:
 	rm -f $O*.* *.o *.flt *.dump
