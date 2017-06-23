@@ -115,8 +115,6 @@ void meta_category_init(meta_category_t* category)
 int meta_category_write(const meta_category_t* category, JSON* json)
 {
 	int result = 0;
-	json_write_string("category", json);
-	json_write_prop_sep(json);
 	json_write_object_start(json);
 	if (!meta_prop_write_str("name", category->name, json))
 	{
