@@ -1441,14 +1441,14 @@ static int fselect_calc_hash(fselect_hash_t hash)
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
     if (!(f = fopen(selected_file, "rb")))
     {
-        gui_mbox_init((int)"Compute hash", LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        gui_mbox_init((int)hash.name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
 
     if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
     {
         fclose(f);
-        gui_mbox_init((int)"Compute hash", LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        gui_mbox_init((int)hash.name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
 
