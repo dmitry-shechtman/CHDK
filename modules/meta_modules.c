@@ -18,7 +18,10 @@ static void get_module_path(char *path, const char* modPath, const char *name)
         strcat(path, "/");
     }
     else
+    {
         path[0] = 0;
+    }
+
     // Add supplied name to path
     strcat(path, name);
 }
