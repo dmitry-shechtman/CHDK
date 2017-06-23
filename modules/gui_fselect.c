@@ -139,9 +139,9 @@ static struct mpopup_item popup[]= {
         { MPOPUP_MKDIR,         LANG_POPUP_MKDIR  },
         { MPOPUP_RENAME,        LANG_POPUP_RENAME },
         { MPOPUP_SELINV,        LANG_POPUP_SELINV },
-        { MPOPUP_EDITOR,        (int)"Edit" },
-        { MPOPUP_CHDK_REPLACE,  (int)"Set this CHDK" },
-        { MPOPUP_RAWOPS,        (int)"Raw ops ->" },
+        { MPOPUP_EDITOR,        LANG_POPUP_EDIT },
+        { MPOPUP_CHDK_REPLACE,  LANG_POPUP_SET_CHDK },
+        { MPOPUP_RAWOPS,        LANG_POPUP_RAW_OPS },
         { 0,                    0 },
 };
 
@@ -156,7 +156,7 @@ static struct mpopup_item popup_rawop[]= {
         { MPOPUP_RAW_AVERAGE,   LANG_POPUP_RAW_AVERAGE },
         { MPOPUP_RAW_DEVELOP,   LANG_MENU_RAW_DEVELOP },
         { MPOPUP_SUBTRACT,      LANG_POPUP_SUB_FROM_MARKED  },
-        { MPOPUP_DNG_TO_CRW,    (int)"DNG -> CHDK RAW"},
+        { MPOPUP_DNG_TO_CRW,    LANG_POPUP_DNG_TO_CHDK_RAW },
         { 0,                    0 },
 };
 
@@ -1206,7 +1206,7 @@ static void fselect_chdk_replace_cb(unsigned int btn)
     if (btn == MBOX_BTN_YES)
     {
         copy_file(items.dir, selected->name, "A", "DISKBOOT.BIN", 1);
-        gui_browser_progress_show("Please reboot",100);
+        gui_browser_progress_show(lang_str(LANG_FSELECT_REBOOT), 100);
     }
 }
 
@@ -1430,7 +1430,7 @@ static void fselect_mpopup_cb(unsigned int actn)
             break;
 
         case MPOPUP_CHDK_REPLACE:
-            gui_mbox_init((int)"Replacing CHDK", (int)"Do you want to replace current CHDK with this file",
+            gui_mbox_init(LANG_FSELECT_SET_CHDK_TITLE, LANG_FSELECT_SET_CHDK_TEXT,
                           MBOX_TEXT_CENTER|MBOX_BTN_YES_NO|MBOX_DEF_BTN2, fselect_chdk_replace_cb);
             break;
         case MPOPUP_EDITOR:

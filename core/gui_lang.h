@@ -799,7 +799,16 @@
 #define LANG_MODULE_HEXBOX                      670
 #define LANG_MODULE_TEXTBOX                     671
 
-#define GUI_LANG_ITEMS                          671
+#define LANG_POPUP_EDIT                         672
+#define LANG_POPUP_SET_CHDK                     673
+#define LANG_POPUP_RAW_OPS                      674
+#define LANG_POPUP_HASH                         675
+#define LANG_POPUP_DNG_TO_CHDK_RAW              676
+#define LANG_FSELECT_REBOOT                     677
+#define LANG_FSELECT_SET_CHDK_TITLE             678
+#define LANG_FSELECT_SET_CHDK_TEXT              679
+
+#define GUI_LANG_ITEMS                          679
 
 //-------------------------------------------------------------------
 extern void gui_lang_init();

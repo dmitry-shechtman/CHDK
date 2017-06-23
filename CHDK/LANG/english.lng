@@ -807,3 +807,13 @@
 669 "Shot Histogram"
 670 "Hex Number Editor"
 671 "Text Box"
+
+// File Browser
+672 "Edit"
+673 "Set this CHDK"
+674 "Raw ops ->"
+675 "Compute hash ->"
+676 "DNG -> CHDK RAW"
+677 "Please reboot"
+678 "Replacing CHDK"
+679 "Do you want to replace current CHDK with this file?"
