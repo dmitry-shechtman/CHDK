@@ -4,7 +4,7 @@
 #include "meta.h"
 
 typedef struct {
-    char* name;
+    const char* name;
 }
 meta_modules_product_t;
 
