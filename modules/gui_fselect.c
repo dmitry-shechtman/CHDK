@@ -143,7 +143,7 @@ static struct mpopup_item popup[]= {
         { MPOPUP_EDITOR,        (int)"Edit" },
         { MPOPUP_CHDK_REPLACE,  (int)"Set this CHDK" },
         { MPOPUP_RAWOPS,        (int)"Raw ops ->" },
-        { MPOPUP_HASH,          (int)"Calculate hash ->" },
+        { MPOPUP_HASH,          (int)"Calculate hashes" },
         { 0,                    0 },
 };
 
@@ -160,13 +160,6 @@ static struct mpopup_item popup_rawop[]= {
         { MPOPUP_SUBTRACT,      LANG_POPUP_SUB_FROM_MARKED  },
         { MPOPUP_DNG_TO_CRW,    (int)"DNG -> CHDK RAW"},
         { 0,                    0 },
-};
-
-static struct mpopup_item popup_hash[] = {
-    { 1, (int)"MD5" },
-    { 2, (int)"SHA-1" },
-    { 3, (int)"SHA-256" },
-    { 0, 0 }
 };
 
 //-------------------------------------------------------------------
@@ -1406,51 +1399,57 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
     }
 };
 
-static int fselect_hash_calc(fselect_hash_t hash)
+static int fselect_hash_calc()
 {
     FILE *f;
-    static unsigned char buf[128];
+    static unsigned char buf[HASH_TYPE_COUNT][128];
     static char str[256];
     int len;
-    int i, index;
+    int h, i, index;
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
     if (!(f = fopen(selected_file, "rb")))
     {
-        gui_mbox_init((int)hash.name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        gui_mbox_init((int)"Calculate hashes", LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
     if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
     {
         fclose(f);
-        gui_mbox_init((int)hash.name, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        gui_mbox_init((int)"Calculate hashes", LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
 
-    hash.init(hash.ctx);
+    for (h = 0; h < HASH_TYPE_COUNT; h++)
+        fselect_hash[h].init(fselect_hash[h].ctx);
+
     while ((len = fread(ubuf, 1, COPY_BUF_SIZE, f)) > 0)
-        hash.process(hash.ctx, ubuf, len);
-    hash.done(hash.ctx, buf);
+        for (h = 0; h < HASH_TYPE_COUNT; h++)
+            fselect_hash[h].process(fselect_hash[h].ctx, ubuf, len);
+
+    for (h = 0; h < HASH_TYPE_COUNT; h++)
+        fselect_hash[h].done(fselect_hash[h].ctx, buf[h]);
 
     fclose(f);
 
     index = 0;
-    for (i = 0; i < hash.size; i++)
+    for (h = 0; h < HASH_TYPE_COUNT; h++)
     {
-        str[index++] = fselect_hash_nibble(buf[i] / 16);
-        str[index++] = fselect_hash_nibble(buf[i] % 16);
+        strcpy(&str[index], fselect_hash[h].name);
+        index += strlen(&str[index]);
+        str[index++] = '\n';
+        for (i = 0; i < fselect_hash[h].size; i++)
+        {
+            str[index++] = fselect_hash_nibble(buf[h][i] / 16);
+            str[index++] = fselect_hash_nibble(buf[h][i] % 16);
+        }
+        str[index++] = '\n';
     }
     str[index++] = 0;
 
-    gui_mbox_init((int)hash.name, (int)str, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+    gui_mbox_init((int)selected->name, (int)str, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
 
     return 1;
-}
-
-static void fselect_mpopup_hash_cb(unsigned int actn)
-{
-    if (actn > 0)
-        fselect_hash_calc(fselect_hash[actn - 1]);
 }
 
 static void mkdir_cb(const char* name)
@@ -1477,7 +1476,6 @@ static void rename_cb(const char* name)
 }
 
 static int mpopup_rawop_flag;
-static int mpopup_hash_flag;
 
 //-------------------------------------------------------------------
 // Return 1 if A/DCIM or A/RAW selected, 0 otherwise
@@ -1551,7 +1549,7 @@ static void fselect_mpopup_cb(unsigned int actn)
             break;
 
         case MPOPUP_HASH:
-            libmpopup->show_popup(popup_hash, mpopup_hash_flag, fselect_mpopup_hash_cb);
+            fselect_hash_calc();
             break;
 
         case MPOPUP_EDITOR:
@@ -1638,7 +1636,6 @@ int gui_fselect_kbd_process()
 
                 i = MPOPUP_SELINV|MPOPUP_MKDIR;
                 mpopup_rawop_flag = 0;
-                mpopup_hash_flag = ~0;
 
                 if (marked_count > 0)
                 {
