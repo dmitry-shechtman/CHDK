@@ -163,12 +163,13 @@ static struct mpopup_item popup_rawop[]= {
 };
 
 static struct mpopup_item popup_hash[] = {
-    { 1, (int)"CRC-32" },
-    { 2, (int)"MD5" },
-    { 3, (int)"SHA-1" },
-    { 4, (int)"SHA-256" },
-    { 5, (int)"SHA-384" },
-    { 6, (int)"SHA-512" },
+    { 1, (int)"CRC-16" },
+    { 2, (int)"CRC-32" },
+    { 3, (int)"MD5" },
+    { 4, (int)"SHA-1" },
+    { 5, (int)"SHA-256" },
+    { 6, (int)"SHA-384" },
+    { 7, (int)"SHA-512" },
     { 0, 0 }
 };
 
@@ -1372,11 +1373,31 @@ typedef struct
 }
 fselect_hash_t;
 
+#include "crc16.h"
 #include "md5.h"
 #include "sha1.h"
 #include "sha256.h"
 #include "sha384.h"
 #include "sha512.h"
+
+void crc16_init(void* ctx)
+{
+    *(u16*)ctx = 0;
+}
+
+int crc16_process(void* ctx, const unsigned char *buf, unsigned long len)
+{
+    *(u16*)ctx = crc16(*(u16*)ctx, buf, len);
+    return 0;
+}
+
+int crc16_done(void* ctx, const unsigned char *buf)
+{
+    u16 crc = *(u16*)ctx;
+    ((unsigned char*)buf)[0] = crc >> 8;
+    ((unsigned char*)buf)[1] = crc;
+    return 0;
+}
 
 extern u32 crc32(u32 crc, const unsigned char *buf, unsigned len);
 
@@ -1401,6 +1422,7 @@ int crc32_done(void* ctx, const unsigned char *buf)
     return 0;
 }
 
+static u16 crc16_ctx;
 static u32 crc32_ctx;
 static struct MD5Context md5_ctx;
 static struct SHA1Context sha1_ctx;
@@ -1408,10 +1430,19 @@ static struct sha256_state sha256_ctx;
 static struct sha384_state sha384_ctx;
 static struct sha512_state sha512_ctx;
 
-#define HASH_TYPE_COUNT 6
+#define HASH_TYPE_COUNT 7
 
 static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
 {
+    {
+        "CRC-16",
+        2,
+        &crc16_ctx,
+        crc16_init,
+        crc16_process,
+        crc16_done,
+        1
+    },
     {
         "CRC-32",
         4,

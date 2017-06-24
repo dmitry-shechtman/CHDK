@@ -68,7 +68,7 @@ $Omodinsp.flt: $Omodule_inspector.o
 $O_dng.flt: $Odng.o $Oreversebytes.o
 $O_rawop.flt: $Oraw_merge.o $Oreversebytes.o
 $O_osd_le.flt: $Ogui_osd_edit.o
-$Ofselect.flt: $Ogui_fselect.o $Onothumb.o $Osha256.o $Osha384.o $Osha512.o $Omd5.o $Osha1.o $Ocrc32.o
+$Ofselect.flt: $Ogui_fselect.o $Onothumb.o $Osha256.o $Osha384.o $Osha512.o $Omd5.o $Osha1.o $Ocrc16.o $Ocrc32.o
 $Ouseredit.flt: $Ouser_menu_edit.o
 $Ocpuinfo.flt: $Ocpuinfo.o
 $Oeyefi.flt: $Oeyefi.o $Omd5.o $Osha1.o
