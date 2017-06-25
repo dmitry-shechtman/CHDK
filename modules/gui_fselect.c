@@ -1378,7 +1378,7 @@ fselect_hash_t;
 #include "sha384.h"
 #include "sha512.h"
 
-extern u32 crc32(u32 crc, const unsigned char *buf, unsigned len);
+u32 crc32(u32 crc, const unsigned char *buf, unsigned len);
 
 void crc32_init(void* ctx)
 {
