@@ -163,12 +163,11 @@ static struct mpopup_item popup_rawop[]= {
 };
 
 static struct mpopup_item popup_hash[] = {
-    { 1, (int)"CRC-32" },
-    { 2, (int)"MD5" },
-    { 3, (int)"SHA-1" },
-    { 4, (int)"SHA-256" },
-    { 5, (int)"SHA-384" },
-    { 6, (int)"SHA-512" },
+    { 1, (int)"MD5" },
+    { 2, (int)"SHA-1" },
+    { 3, (int)"SHA-256" },
+    { 4, (int)"SHA-384" },
+    { 5, (int)"SHA-512" },
     { 0, 0 }
 };
 
@@ -1378,49 +1377,16 @@ fselect_hash_t;
 #include "sha384.h"
 #include "sha512.h"
 
-u32 crc32(u32 crc, const unsigned char *buf, unsigned len);
-
-void crc32_init(void* ctx)
-{
-    *(u32*)ctx = 0;
-}
-
-int crc32_process(void* ctx, const unsigned char *buf, unsigned long len)
-{
-    *(u32*)ctx = crc32(*(u32*)ctx, buf, len);
-    return 0;
-}
-
-int crc32_done(void* ctx, const unsigned char *buf)
-{
-    u32 crc = *(u32*)ctx;
-    ((unsigned char*)buf)[0] = crc >> 24;
-    ((unsigned char*)buf)[1] = crc >> 16;
-    ((unsigned char*)buf)[2] = crc >> 8;
-    ((unsigned char*)buf)[3] = crc;
-    return 0;
-}
-
-static u32 crc32_ctx;
 static struct MD5Context md5_ctx;
 static struct SHA1Context sha1_ctx;
 static struct sha256_state sha256_ctx;
 static struct sha384_state sha384_ctx;
 static struct sha512_state sha512_ctx;
 
-#define HASH_TYPE_COUNT 6
+#define HASH_TYPE_COUNT 5
 
 static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
 {
-    {
-        "CRC-32",
-        4,
-        &crc32_ctx,
-        crc32_init,
-        crc32_process,
-        crc32_done,
-        1
-    },
     {
         "MD5",
         16,
