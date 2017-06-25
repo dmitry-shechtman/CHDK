@@ -166,8 +166,6 @@ static struct mpopup_item popup_hash[] = {
     { 1, (int)"MD5" },
     { 2, (int)"SHA-1" },
     { 3, (int)"SHA-256" },
-    { 4, (int)"SHA-384" },
-    { 5, (int)"SHA-512" },
     { 0, 0 }
 };
 
@@ -1374,16 +1372,12 @@ fselect_hash_t;
 #include "md5.h"
 #include "sha1.h"
 #include "sha256.h"
-#include "sha384.h"
-#include "sha512.h"
 
 static struct MD5Context md5_ctx;
 static struct SHA1Context sha1_ctx;
 static struct sha256_state sha256_ctx;
-static struct sha384_state sha384_ctx;
-static struct sha512_state sha512_ctx;
 
-#define HASH_TYPE_COUNT 5
+#define HASH_TYPE_COUNT 3
 
 static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
 {
@@ -1410,22 +1404,6 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
         (fselect_hash_init*)sha256_init,
         (fselect_hash_process*)sha256_process,
         (fselect_hash_done*)sha256_done
-    },
-    {
-        "SHA-384",
-        48,
-        &sha384_ctx,
-        (fselect_hash_init*)sha384_init,
-        (fselect_hash_process*)sha384_process,
-        (fselect_hash_done*)sha384_done
-    },
-    {
-        "SHA-512",
-        64,
-        &sha512_ctx,
-        (fselect_hash_init*)sha512_init,
-        (fselect_hash_process*)sha512_process,
-        (fselect_hash_done*)sha512_done
     }
 };
 
