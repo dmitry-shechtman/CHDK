@@ -802,7 +802,7 @@
 #define LANG_POPUP_EDIT                         672
 #define LANG_POPUP_SET_CHDK                     673
 #define LANG_POPUP_RAW_OPS                      674
-#define LANG_POPUP_HASH                         675
+#define LANG_POPUP_PROPERTIES                   675
 #define LANG_POPUP_DNG_TO_CHDK_RAW              676
 #define LANG_FSELECT_REBOOT                     677
 #define LANG_FSELECT_SET_CHDK_TITLE             678
