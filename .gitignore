@@ -29,3 +29,5 @@ modules/module_exportlist.h
 modules/module_hashlist.c
 revision.inc
 bin_compat.h
+
+/localbuildconf.inc
