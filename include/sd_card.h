@@ -17,6 +17,7 @@ extern char * camera_jpeg_count_str();
 extern int swap_partitions(int new_partition);
 extern unsigned char get_active_partition(void);
 extern int get_part_type(int);
+extern int get_part_size(int);
 extern int get_part_count(void);
 extern int is_partition_changed(void);
 extern void create_partitions(void);

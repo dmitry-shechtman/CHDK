@@ -1213,6 +1213,22 @@ int get_part_type(int part)
   return partType;
 } 
 
+int get_part_size(int part)
+{
+  int partSize = 0x00;
+  if (is_mbr_loaded())
+  {
+    if (part == 0)
+      part = get_active_partition();
+    int a = mbr_buf[0x01CA + (part - 1)];
+    int b = mbr_buf[0x01CB + (part - 1)];
+    int c = mbr_buf[0x01CC + (part - 1)];
+    int d = mbr_buf[0x01CD + (part - 1)];
+    partSize = ((((((d << 8) + c) << 8) + b) << 8) + a) >> 1;
+  }
+  return partSize;
+}
+
 static int boot_partition = 0;
 static int partition_changed = 0;
 int is_partition_changed()
@@ -1321,6 +1337,7 @@ void create_partitions(void){
 int swap_partitions(int new_partition) { return 0; }
 int get_part_count(void) { return 1; }
 int get_part_type(int part) { return 0; }
+int get_part_size(int part) { return 0; }
 unsigned char get_active_partition(void) { return 1; }
 int is_partition_changed() { return 0; }
 

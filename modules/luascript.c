@@ -518,7 +518,7 @@ static int luaCB_get_partitionInfo( lua_State* L )
       SET_INT_FIELD("count",  get_part_count());
       SET_INT_FIELD("active", get_active_partition());
       SET_INT_FIELD("type",   get_part_type(1));
-      SET_INT_FIELD("size",   GetTotalCardSpaceKb()>>10);
+      SET_INT_FIELD("size",   get_part_size(1)>>10);
       return 1;
     }
     return 0;

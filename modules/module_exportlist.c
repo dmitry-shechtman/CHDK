@@ -360,6 +360,7 @@
             swap_partitions
             get_part_count
             get_part_type
+            get_part_size
             get_active_partition
 
             PostLogicalEventForNotPowerType
