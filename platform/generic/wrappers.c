@@ -825,11 +825,6 @@ long sprintf(char *s, const char *st, ...)
     return res;
 }
 
-long vsprintf(char *s, const char *st, __builtin_va_list va)
-{
-    return _vsprintf(s, st, va);
-}
-
 // strerror exists on vxworks cams,
 // but it does about the same thing as this
 const char *strerror(int en) {
