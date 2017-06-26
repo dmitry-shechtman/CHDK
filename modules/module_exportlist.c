@@ -122,6 +122,7 @@
             isspace
             isupper
             isxdigit
+            vsprintf
 
             text_dimensions
             draw_string
