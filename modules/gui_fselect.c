@@ -1410,12 +1410,16 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
 
 #define MBOX_TEXT_WIDTH 36
 #define HASH_BUFFER_SIZE 256
+#define HASH_PROGRESS_MIN_SIZE 1048576
 
-static int fselect_calc_hashes(unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE])
+static int fselect_calc_hashes(unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE], unsigned long size)
 {
+    static char str[32];
     FILE *f;
     int h;
     int len;
+    unsigned long pos;
+    unsigned char progress;
 
     if (!(f = fopen(selected_file, "rb")))
     {
@@ -1433,15 +1437,30 @@ static int fselect_calc_hashes(unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SI
     for (h = 0; h < HASH_TYPE_COUNT; h++)
         fselect_hash[h].init(fselect_hash[h].ctx);
 
+    pos = 0;
+    progress = 0;
     while ((len = fread(ubuf, 1, COPY_BUF_SIZE, f)) > 0)
+    {
         for (h = 0; h < HASH_TYPE_COUNT; h++)
             fselect_hash[h].process(fselect_hash[h].ctx, ubuf, len);
+        pos += len;
+        if (size >= HASH_PROGRESS_MIN_SIZE)
+        {
+            if (progress == 0 || progress < pos * 100 / size)
+            {
+                progress = pos * 100 / size;
+                sprintf(str, "%d of %d (%d%%)", pos, size, progress);
+                gui_browser_progress_show(str, progress);
+            }
+        }
+    }
 
     for (h = 0; h < HASH_TYPE_COUNT; h++)
         fselect_hash[h].done(fselect_hash[h].ctx, buf[h]);
 
     fclose(f);
 
+    finished();
     return 1;
 }
 
@@ -1478,6 +1497,8 @@ static void fselect_format_hashes(char* str, unsigned char buf[HASH_TYPE_COUNT][
     str[index - 1] = 0;
 }
 
+#define HASH_MAX_SIZE 104857600
+
 static void fselect_properties()
 {
     static struct stat st;
@@ -1492,7 +1513,7 @@ static void fselect_properties()
     if (stat(selected_file, &st))
         return;
 
-    calc_hashes = !selected->isdir;
+    calc_hashes = !selected->isdir && st.st_size <= HASH_MAX_SIZE;
 
     time = localtime(&st.st_mtime);
     
@@ -1508,17 +1529,18 @@ static void fselect_properties()
     index += sprintf(&str[index], "Time:      %02u:%02u:%02u\n",
         time->tm_hour, time->tm_min, time->tm_sec);
 
-    if (calc_hashes)
+    if (!selected->isdir)
     {
-        for (i = 0; i < 8; i++)
-            str[index++] = ' ';
+        if (calc_hashes)
+            for (i = 0; i < 8; i++)
+                str[index++] = ' ';
         index += sprintf(&str[index], "Size:  %12d\n",
             st.st_size);
     }
 
     if (calc_hashes)
     {
-        if (!fselect_calc_hashes(buf))
+        if (!fselect_calc_hashes(buf, st.st_size))
             return;
 
         fselect_format_hashes(&str[index], buf);
