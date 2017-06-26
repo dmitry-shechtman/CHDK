@@ -795,7 +795,16 @@
 #define LANG_MODULE_MOTION_DETECT               666
 #define LANG_MODULE_POPUP_MENU                  667
 
-#define GUI_LANG_ITEMS                          667
+#define LANG_FSELECT_LABEL_DATE                 680
+#define LANG_FSELECT_LABEL_TIME                 681
+#define LANG_FSELECT_LABEL_SIZE                 682
+#define LANG_FSELECT_LABEL_ATTR                 683
+#define LANG_MENU_FILE_BROWSER                  684
+#define LANG_MENU_FSELECT_DATE_FORMAT           685
+#define LANG_MENU_FSELECT_TIME_FORMAT           686
+#define LANG_MENU_FSELECT_COMPUTE_HASHES        687
+
+#define GUI_LANG_ITEMS                          687
 
 //-------------------------------------------------------------------
 extern void gui_lang_init();

@@ -977,9 +977,6 @@ static CMenuItem misc_submenu_items[] = {
 #if defined(CAM_IS_VID_REC_WORKS)
     MENU_ITEM   (0x5c,LANG_MENU_ENABLE_UNSAFE_IO,           MENUITEM_BOOL|MENUITEM_ARG_CALLBACK, &conf.allow_unsafe_io, (int)gui_unsafe_io_warning ),
 #endif
-#if defined(CAM_DRYOS)
-    MENU_ITEM   (0x5c,LANG_MENU_DISABLE_LFN_SUPPORT,        MENUITEM_BOOL,                  &conf.disable_lfn_parser_ui, 0 ),
-#endif
     MENU_ITEM   (0x33,LANG_SD_CARD,                         MENUITEM_SUBMENU,               &sdcard_submenu,                    0 ),
 #ifdef OPT_DEBUGGING
     MENU_ITEM   (0x2a,LANG_MENU_MAIN_DEBUG,                 MENUITEM_SUBMENU,               &debug_submenu,                     0 ),
@@ -1721,7 +1718,6 @@ static CMenuItem osd_submenu_items[] = {
     MENU_ITEM(0x33,LANG_MENU_OSD_SPACE_PARAMS,      MENUITEM_SUBMENU,       &space_submenu, 0 ),
     MENU_ITEM(0x34,LANG_MENU_OSD_CLOCK_PARAMS,	 	MENUITEM_SUBMENU,       &clock_submenu, 0 ),
     MENU_ITEM(0x59,LANG_MENU_OSD_SHOW_IN_REVIEW,    MENUITEM_BOOL,          &conf.show_osd_in_review, 0 ),
-    MENU_ITEM(0x59,LANG_MENU_OSD_SHOW_HIDDENFILES,  MENUITEM_BOOL,          &conf.show_hiddenfiles, 0 ),
 #ifdef  CAM_TOUCHSCREEN_UI
     MENU_ITEM   (0x22,LANG_MENU_TOUCHSCREEN_VALUES,         MENUITEM_SUBMENU,   &touchscreen_submenu,       0 ),
 #endif
@@ -2012,6 +2008,43 @@ static CMenu menu_settings_submenu = {0x28,LANG_MENU_MENU_SETTINGS, menu_setting
 
 //-------------------------------------------------------------------
 
+static const char* gui_fselect_date_format(int change, int arg)
+{
+    static const char* date_formats[] = { "D.M.Y", "D/M/Y", "M-D-Y", "Y-M-D" };
+
+    gui_enum_value_change(&conf.fselect_date_format, change, sizeof(date_formats) / sizeof(date_formats[0]));
+
+    return date_formats[conf.fselect_date_format];
+}
+
+static const char* gui_fselect_time_format(int change, int arg)
+{
+    static const char* time_formats[] = { "24", "12" };
+
+    gui_enum_value_change(&conf.fselect_time_format, change, sizeof(time_formats) / sizeof(time_formats[0]));
+
+    return time_formats[conf.fselect_time_format];
+}
+
+static CMenuItem fselect_submenu_items[] = {
+    MENU_ITEM(0x59, LANG_MENU_OSD_SHOW_HIDDENFILES,   MENUITEM_BOOL, &conf.show_hiddenfiles,            0),
+#if defined(CAM_DRYOS)
+    MENU_ITEM(0x5c, LANG_MENU_DISABLE_LFN_SUPPORT,    MENUITEM_BOOL, &conf.disable_lfn_parser_ui,       0),
+#endif
+    MENU_ITEM(0x5f, LANG_MENU_FSELECT_DATE_FORMAT,    MENUITEM_ENUM, gui_fselect_date_format,           0),
+    MENU_ITEM(0x5f, LANG_MENU_FSELECT_TIME_FORMAT,    MENUITEM_ENUM, gui_fselect_time_format,           0),
+    MENU_ITEM(0x5c, LANG_MENU_FSELECT_COMPUTE_HASHES, MENUITEM_BOOL, &conf.fselect_compute_hashes,      0),
+    MENU_ITEM(0x5c, "  MD5",                          MENUITEM_BOOL, &conf.fselect_compute_hash_md5,    0),
+    MENU_ITEM(0x5c, "  SHA-1",                        MENUITEM_BOOL, &conf.fselect_compute_hash_sha1,   0),
+    MENU_ITEM(0x5c, "  SHA-256",                      MENUITEM_BOOL, &conf.fselect_compute_hash_sha256, 0),
+    MENU_ITEM(0x51, LANG_MENU_BACK, MENUITEM_UP, 0, 0),
+    {0}
+};
+
+static CMenu fselect_submenu = { 0x35, LANG_STR_FILE_BROWSER, fselect_submenu_items };
+
+//-------------------------------------------------------------------
+
 #if CAM_ADJUSTABLE_ALT_BUTTON
 
 const char* gui_alt_mode_button_enum(int change, int arg)
@@ -2108,6 +2141,7 @@ static CMenuItem chdk_settings_menu_items[] = {
     MENU_ITEM   (0x72,LANG_MENU_OSD_LAYOUT_EDITOR,          MENUITEM_PROC,      module_run, "_osd_le.flt" ),
     MENU_ITEM   (0x28,LANG_MENU_MAIN_VISUAL_PARAM,          MENUITEM_SUBMENU,   &visual_submenu, 0 ),
     MENU_ITEM   (0x28,LANG_MENU_MENU_SETTINGS,              MENUITEM_SUBMENU,   &menu_settings_submenu, 0 ),
+    MENU_ITEM   (0x35,LANG_MENU_FILE_BROWSER,               MENUITEM_SUBMENU,   &fselect_submenu, 0),
     MENU_ITEM   (0x2f,LANG_MENU_OSD_GRID_PARAMS,            MENUITEM_SUBMENU,   &grid_submenu, 0 ),
 #ifdef CAM_HAS_GPS
     MENU_ITEM	(0x28,LANG_MENU_GPS,                        MENUITEM_SUBMENU,	&gps_submenu,		0 ),

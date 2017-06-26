@@ -456,6 +456,13 @@ typedef struct
 
     int enable_raw_shortcut;    // enable RAW state toggle keyboard shortcut, 0=no, 1=yes, 2=yes with RAW OSD enabled
 
+    int fselect_date_format;
+    int fselect_time_format;
+    int fselect_compute_hashes;
+    int fselect_compute_hash_md5;
+    int fselect_compute_hash_sha1;
+    int fselect_compute_hash_sha256;
+
 } Conf;
 
 extern Conf conf;

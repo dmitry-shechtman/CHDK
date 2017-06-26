@@ -803,3 +803,11 @@
 665 "Lua Scripting"
 666 "Motion Detection"
 667 "Popup Menu"
+
+680 "Date:    "
+681 "Time:    "
+682 "Size:  "
+684 "File Browser Settings"
+685 "Date format"
+686 "Time format"
+687 "Compute hashes"
