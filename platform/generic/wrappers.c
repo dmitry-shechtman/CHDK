@@ -1206,6 +1206,8 @@ int get_part_type(int part)
   int partType = 0x00;
   if (is_mbr_loaded())
   {
+    if (part == 0)
+      part = get_active_partition();
     partType=mbr_buf[0x1C2+(part-1)*16];
   }
   return partType;
