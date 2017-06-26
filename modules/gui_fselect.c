@@ -1485,33 +1485,44 @@ static void fselect_properties()
     static char str[256];
     struct tm *time;
     int i, index = 0;
+    int calc_hashes = 0;
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
 
     if (stat(selected_file, &st))
         return;
 
-    if (!fselect_calc_hashes(buf))
-        return;
+    calc_hashes = !selected->isdir;
 
     time = localtime(&st.st_mtime);
     
-    for (i = 0; i < 8; i++)
-        str[index++] = ' ';
+    if (calc_hashes)
+        for (i = 0; i < 8; i++)
+            str[index++] = ' ';
     index += sprintf(&str[index], "Date:    %02u.%02u.%04u\n",
         time->tm_mday, time->tm_mon + 1, (time->tm_year < 100) ? time->tm_year + 2000 : time->tm_year + 1900);
 
-    for (i = 0; i < 8; i++)
-        str[index++] = ' ';
+    if (calc_hashes)
+        for (i = 0; i < 8; i++)
+            str[index++] = ' ';
     index += sprintf(&str[index], "Time:      %02u:%02u:%02u\n",
         time->tm_hour, time->tm_min, time->tm_sec);
 
-    for (i = 0; i < 8; i++)
-        str[index++] = ' ';
-    index += sprintf(&str[index], "Size:  %12d\n",
-        st.st_size);
+    if (calc_hashes)
+    {
+        for (i = 0; i < 8; i++)
+            str[index++] = ' ';
+        index += sprintf(&str[index], "Size:  %12d\n",
+            st.st_size);
+    }
 
-    fselect_format_hashes(&str[index], buf);
+    if (calc_hashes)
+    {
+        if (!fselect_calc_hashes(buf))
+            return;
+
+        fselect_format_hashes(&str[index], buf);
+    }
 
     gui_mbox_init((int)selected->name, (int)str, MBOX_BTN_OK, NULL);
 }
@@ -1737,7 +1748,7 @@ int gui_fselect_kbd_process()
                 if (chk_ext(selected->name, "bin")) //If item is *.bin file
                     i |= MPOPUP_CHDK_REPLACE;
 
-                if (!selected->isdir)
+                if (!selected->isparent)
                     i |= MPOPUP_PROPERTIES;
 
                 if (mpopup_rawop_flag)
