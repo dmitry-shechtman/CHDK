@@ -1522,27 +1522,6 @@ static void fselect_format_hashes(char* str, unsigned char buf[HASH_TYPE_COUNT][
     str[index - 1] = 0;
 }
 
-#if !STANDALONE
-
-#include <stdarg.h>
-
-extern int vsprintf(char *buf, const char *fmt, __builtin_va_list va_list);
-
-static int fs_sprintf(int calc_hashes, char* str, const char* format, ...)
-{
-    int i, index = 0;
-    va_list argptr;
-    if (calc_hashes)
-        for (i = 0; i < 8; i++)
-            str[index++] = ' ';
-    va_start(argptr, format);
-    index += vsprintf(&str[index], format, argptr);
-    va_end(argptr);
-    return index;
-}
-
-#endif
-
 static int fselect_format_date(int calc_hashes, char* str, struct tm *time)
 {
     int day = time->tm_mday;
