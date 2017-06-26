@@ -1201,12 +1201,12 @@ int get_part_count(void)
   }
   return count;
 }
-int get_part_type()
+int get_part_type(int part)
 {
   int partType = 0x00;
   if (is_mbr_loaded())
   {
-    partType=mbr_buf[0x1C2+(get_active_partition()-1)*16];
+    partType=mbr_buf[0x1C2+(part-1)*16];
   }
   return partType;
 } 
@@ -1318,7 +1318,7 @@ void create_partitions(void){
 // Dummy for scripts if not implemented in camera
 int swap_partitions(int new_partition) { return 0; }
 int get_part_count(void) { return 1; }
-int get_part_type() { return 0; }
+int get_part_type(int part) { return 0; }
 unsigned char get_active_partition(void) { return 1; }
 int is_partition_changed() { return 0; }
 
