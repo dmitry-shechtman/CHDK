@@ -1497,6 +1497,27 @@ static void fselect_format_hashes(char* str, unsigned char buf[HASH_TYPE_COUNT][
     str[index - 1] = 0;
 }
 
+#if !STANDALONE
+
+#include <stdarg.h>
+
+extern int vsprintf(char *buf, const char *fmt, __builtin_va_list va_list);
+
+static int fs_sprintf(int calc_hashes, char* str, const char* format, ...)
+{
+    int i, index = 0;
+    va_list argptr;
+    if (calc_hashes)
+        for (i = 0; i < 8; i++)
+            str[index++] = ' ';
+    va_start(argptr, format);
+    index += vsprintf(&str[index], format, argptr);
+    va_end(argptr);
+    return index;
+}
+
+#endif
+
 #define HASH_MAX_SIZE 104857600
 
 static void fselect_properties()
@@ -1517,25 +1538,40 @@ static void fselect_properties()
 
     time = localtime(&st.st_mtime);
     
+#if STANDALONE
     if (calc_hashes)
         for (i = 0; i < 8; i++)
             str[index++] = ' ';
     index += sprintf(&str[index], "Date:    %02u.%02u.%04u\n",
         time->tm_mday, time->tm_mon + 1, (time->tm_year < 100) ? time->tm_year + 2000 : time->tm_year + 1900);
+#else
+    index += fs_sprintf(calc_hashes, &str[index], "Date:    %02u.%02u.%04u\n",
+        time->tm_mday, time->tm_mon + 1, (time->tm_year < 100) ? time->tm_year + 2000 : time->tm_year + 1900);
+#endif
 
+#if STANDALONE
     if (calc_hashes)
         for (i = 0; i < 8; i++)
             str[index++] = ' ';
     index += sprintf(&str[index], "Time:      %02u:%02u:%02u\n",
         time->tm_hour, time->tm_min, time->tm_sec);
+#else
+    index += fs_sprintf(calc_hashes, &str[index], "Time:      %02u:%02u:%02u\n",
+        time->tm_hour, time->tm_min, time->tm_sec);
+#endif
 
     if (!selected->isdir)
     {
+#if STANDALONE
         if (calc_hashes)
             for (i = 0; i < 8; i++)
                 str[index++] = ' ';
         index += sprintf(&str[index], "Size:  %12d\n",
             st.st_size);
+#else
+        index += fs_sprintf(calc_hashes, &str[index], "Size:  %12d\n",
+            st.st_size);
+#endif
     }
 
     if (calc_hashes)
