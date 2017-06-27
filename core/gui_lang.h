@@ -806,8 +806,9 @@
 #define LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR 688
 #define LANG_MENU_FSELECT_HASHES                689
 #define LANG_MENU_FSELECT_COMPUTE_HASHES        690
+#define LANG_MENU_FSELECT_HASH_SIZE_LIMIT       691
 
-#define GUI_LANG_ITEMS                          690
+#define GUI_LANG_ITEMS                          691
 
 //-------------------------------------------------------------------
 extern void gui_lang_init();

@@ -1644,8 +1644,6 @@ static int fselect_format_size_long(int indent, char* str, unsigned long size)
     return index;
 }
 
-#define HASH_MAX_SIZE 104857600
-
 static void fselect_properties()
 {
     static struct stat st;
@@ -1662,10 +1660,13 @@ static void fselect_properties()
         return;
 
     calc_hashes = 0;
-    if (!selected->isdir && conf.fselect_compute_hashes && st.st_size <= HASH_MAX_SIZE)
+    if (!selected->isdir && conf.fselect_compute_hashes
+        && (conf.fselect_hash_size_limit == 0 || st.st_size <= ((unsigned long)conf.fselect_hash_size_limit << 20)))
+    {
         for (i = 0; i < HASH_TYPE_COUNT; i++)
             if (*fselect_hash[i].conf)
                 calc_hashes++;
+    }
 
     time = localtime(&st.st_mtime);
     

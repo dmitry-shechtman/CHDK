@@ -464,6 +464,7 @@ typedef struct
     int fselect_compute_hash_md5;
     int fselect_compute_hash_sha1;
     int fselect_compute_hash_sha256;
+    int fselect_hash_size_limit;
 
 } Conf;
 
