@@ -748,6 +748,7 @@ void gui_fselect_init(int title, const char* prev_dir, const char* default_dir, 
 
 static int fselect_format_date_short(int indent, char* str, struct tm *time);
 static int fselect_format_time_short(int indent, char* str, struct tm *time);
+static int fselect_format_size_short(char* str, unsigned long n);
 
 //-------------------------------------------------------------------
 void gui_fselect_draw(int enforce_redraw)
@@ -827,30 +828,10 @@ void gui_fselect_draw(int enforce_redraw)
             }
             else
             {
-                unsigned long n = ptr->size;
-
                 if (ptr->marked)
-                  sum_size += n;
+                  sum_size += ptr->size;
 
-                if (n < 1024)
-                    sprintf(dbuf+j, "%5db", n); // " 1023 b"
-                else
-                {
-                    char c = 'k';
-                    if (n >= 1024*1024*1024)        // GB
-                    {
-                        n = n >> 20;    // Note: can't round this up in case of overflow
-                        c = 'G';
-                    }
-                    else if (n >= 1024*1024)        // MB
-                    {
-                        n = (n + 512) >> 10;
-                        c = 'M';
-                    }
-                    n += 512;
-                    unsigned long f = ((n & 0x3FF) * 10) >> 10;    // 1 digit of remainder % 1024
-                    sprintf(dbuf+j, "%3d.%1d%c", n >> 10, f, c);
-                }
+                fselect_format_size_short(&dbuf[j], ptr->size);
             }
             j += SIZE_SIZE;
             dbuf[j++] = 0x06;   // Vertical line
@@ -1610,6 +1591,30 @@ static int fselect_format_time_long(int indent, char* str, struct tm *time)
     str[index++] = '\n';
 
     return index;
+}
+
+static int fselect_format_size_short(char* str, unsigned long n)
+{
+    if (n < 1024)
+        sprintf(str, "%5db", n); // " 1023 b"
+    else
+    {
+        char c = 'k';
+        if (n >= 1024 * 1024 * 1024)        // GB
+        {
+            n = n >> 20;    // Note: can't round this up in case of overflow
+            c = 'G';
+        }
+        else if (n >= 1024 * 1024)        // MB
+        {
+            n = (n + 512) >> 10;
+            c = 'M';
+        }
+        n += 512;
+        unsigned long f = ((n & 0x3FF) * 10) >> 10;    // 1 digit of remainder % 1024
+        sprintf(str, "%3d.%1d%c", n >> 10, f, c);
+    }
+    return SIZE_SIZE;
 }
 
 static int fselect_format_size_long(int indent, char* str, unsigned long size)
