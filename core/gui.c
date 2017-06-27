@@ -2028,11 +2028,9 @@ static const char* gui_fselect_date_format_separator(int change, int arg)
 
 static const char* gui_fselect_time_format_clock(int change, int arg)
 {
-    static const char* time_format_clocks[] = { "24H", "12H" };
+    gui_enum_value_change(&conf.fselect_time_format_clock, change, sizeof(gui_clock_format_modes) / sizeof(gui_clock_format_modes[0]));
 
-    gui_enum_value_change(&conf.fselect_time_format_clock, change, sizeof(time_format_clocks) / sizeof(time_format_clocks[0]));
-
-    return time_format_clocks[conf.fselect_time_format_clock];
+    return gui_clock_format_modes[conf.fselect_time_format_clock];
 }
 
 static const char* gui_fselect_time_format_separator(int change, int arg)
@@ -2060,10 +2058,10 @@ static CMenuItem fselect_submenu_items[] = {
 #if defined(CAM_DRYOS)
     MENU_ITEM(0x5c, LANG_MENU_DISABLE_LFN_SUPPORT,           MENUITEM_BOOL,    &conf.disable_lfn_parser_ui,       0),
 #endif
-    MENU_ITEM(0x5f, LANG_MENU_FSELECT_DATE_FORMAT_ORDER,     MENUITEM_ENUM,    gui_fselect_date_format_order,     0),
-    MENU_ITEM(0x5f, LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR, MENUITEM_ENUM,    gui_fselect_date_format_separator, 0),
-    MENU_ITEM(0x5f, LANG_MENU_FSELECT_TIME_FORMAT_CLOCK,     MENUITEM_ENUM,    gui_fselect_time_format_clock,     0),
-    MENU_ITEM(0x5f, LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR, MENUITEM_ENUM,    gui_fselect_time_format_separator, 0),
+    MENU_ITEM(0x36, LANG_MENU_FSELECT_DATE_FORMAT_ORDER,     MENUITEM_ENUM,    gui_fselect_date_format_order,     0),
+    MENU_ITEM(0x36, LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR, MENUITEM_ENUM,    gui_fselect_date_format_separator, 0),
+    MENU_ITEM(0x34, LANG_MENU_FSELECT_TIME_FORMAT_CLOCK,     MENUITEM_ENUM,    gui_fselect_time_format_clock,     0),
+    MENU_ITEM(0x34, LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR, MENUITEM_ENUM,    gui_fselect_time_format_separator, 0),
     MENU_ITEM(0x28, LANG_MENU_FSELECT_HASHES,                MENUITEM_SUBMENU, &fselect_hashes_submenu,           0),
     MENU_ITEM(0x51, LANG_MENU_BACK, MENUITEM_UP, 0, 0),
     {0}
