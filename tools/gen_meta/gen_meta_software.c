@@ -39,16 +39,16 @@ static void meta_product_init(meta_product_t* product)
 
 static int meta_software_category_write(const meta_category_t* category, JSON* json)
 {
-    json_write_string("category", json);
-    json_write_prop_sep(json);
-    return meta_category_write(category, json);
+	json_write_string("category", json);
+	json_write_prop_sep(json);
+	return meta_category_write(category, json);
 }
 
 static int meta_software_hash_write(const meta_hash_t* hash, JSON* json)
 {
-    json_write_string("hash", json);
-    json_write_prop_sep(json);
-    return meta_hash_write(hash, json);
+	json_write_string("hash", json);
+	json_write_prop_sep(json);
+	return meta_hash_write(hash, json);
 }
 
 static int meta_product_write(const meta_product_t* product, JSON* json)
@@ -207,6 +207,7 @@ static int meta_build_write(const meta_build_t* build, JSON* json)
 typedef struct
 {
 	const char* name;
+	const char* platform;
 	const char* version;
 }
 meta_compiler_t;
@@ -214,6 +215,7 @@ meta_compiler_t;
 static void meta_compiler_init(meta_compiler_t* compiler)
 {
 	compiler->name = NULL;
+	compiler->platform = NULL;
 	compiler->version = NULL;
 }
 
@@ -227,6 +229,16 @@ static int meta_compiler_write(const meta_compiler_t* compiler, JSON* json)
 	if (!meta_prop_write_str("name", compiler->name, json))
 	{
 		fprintf(stderr, "Missing compiler name\n");
+		result = -1;
+	}
+	else
+	{
+		json_write_object_array_sep(json);
+	}
+
+	if (!meta_prop_write_str("platform", compiler->platform, json))
+	{
+		fprintf(stderr, "Missing compiler platform\n");
 		result = -1;
 	}
 	else
@@ -374,7 +386,7 @@ static int meta_software_write(const meta_software_t* software, JSON* json)
 	json_write_object_start(json);
 	result |= ~meta_prop_write_str("version", "1.0", json);
 	json_write_object_array_sep(json);
-    result |= meta_software_category_write(&software->category, json);
+	result |= meta_software_category_write(&software->category, json);
 	json_write_object_array_sep(json);
 	result |= meta_product_write(&software->product, json);
 	json_write_object_array_sep(json);
@@ -417,6 +429,7 @@ static int usage()
 	printf("\t--build-changeset         Build changeset\n");
 	printf("\t--build-creator           Build creator (optional)\n");
 	printf("\t--compiler-name           Compiler name\n");
+	printf("\t--compiler-platform       Compiler platform\n");
 	printf("\t--compiler-version        Compiler version\n");
 	printf("\t--source-name             Source name\n");
 	printf("\t--source-channel          Source channel (optional)\n");
@@ -454,6 +467,7 @@ static int parse_args(int argc, char const* argv[], meta_software_t* software, c
 			&& !cli_flag_str("--build-changeset", argc, argv, &i, &software->build.changeset)
 			&& !cli_flag_str("--build-creator", argc, argv, &i, &software->build.creator)
 			&& !cli_flag_str("--compiler-name", argc, argv, &i, &software->compiler.name)
+			&& !cli_flag_str("--compiler-platform", argc, argv, &i, &software->compiler.platform)
 			&& !cli_flag_str("--compiler-version", argc, argv, &i, &software->compiler.version)
 			&& !cli_flag_str("--source-name", argc, argv, &i, &software->source.name)
 			&& !cli_flag_str("--source-channel", argc, argv, &i, &software->source.channel)
@@ -530,7 +544,7 @@ int main(int argc, char const* argv[])
 
 	software.category.name = category;
 
-    hash_item.filename = (char*)filename;
+	hash_item.filename = (char*)filename;
 	hash_item.size = 0;
 	software.hash.items = &hash_item;
 	software.hash.count = 1;
