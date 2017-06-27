@@ -800,11 +800,13 @@
 #define LANG_FSELECT_LABEL_SIZE                 682
 #define LANG_FSELECT_LABEL_ATTR                 683
 #define LANG_MENU_FILE_BROWSER                  684
-#define LANG_MENU_FSELECT_DATE_FORMAT           685
-#define LANG_MENU_FSELECT_TIME_FORMAT           686
-#define LANG_MENU_FSELECT_COMPUTE_HASHES        687
+#define LANG_MENU_FSELECT_DATE_FORMAT_ORDER     685
+#define LANG_MENU_FSELECT_TIME_FORMAT_CLOCK     686
+#define LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR 687
+#define LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR 688
+#define LANG_MENU_FSELECT_COMPUTE_HASHES        689
 
-#define GUI_LANG_ITEMS                          687
+#define GUI_LANG_ITEMS                          689
 
 //-------------------------------------------------------------------
 extern void gui_lang_init();

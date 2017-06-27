@@ -2008,35 +2008,55 @@ static CMenu menu_settings_submenu = {0x28,LANG_MENU_MENU_SETTINGS, menu_setting
 
 //-------------------------------------------------------------------
 
-static const char* gui_fselect_date_format(int change, int arg)
+static const char* gui_fselect_date_format_order(int change, int arg)
 {
-    static const char* date_formats[] = { "D.M.Y", "D/M/Y", "M-D-Y", "Y-M-D" };
+    static const char* date_format_orders[] = { "DMY", "MDY", "YMD" };
 
-    gui_enum_value_change(&conf.fselect_date_format, change, sizeof(date_formats) / sizeof(date_formats[0]));
+    gui_enum_value_change(&conf.fselect_date_format_order, change, sizeof(date_format_orders) / sizeof(date_format_orders[0]));
 
-    return date_formats[conf.fselect_date_format];
+    return date_format_orders[conf.fselect_date_format_order];
 }
 
-static const char* gui_fselect_time_format(int change, int arg)
+static const char* gui_fselect_date_format_separator(int change, int arg)
 {
-    static const char* time_formats[] = { "24", "12" };
+    static const char* date_format_separators[] = { ".", "/", "-" };
 
-    gui_enum_value_change(&conf.fselect_time_format, change, sizeof(time_formats) / sizeof(time_formats[0]));
+    gui_enum_value_change(&conf.fselect_date_format_separator, change, sizeof(date_format_separators) / sizeof(date_format_separators[0]));
 
-    return time_formats[conf.fselect_time_format];
+    return date_format_separators[conf.fselect_date_format_separator];
+}
+
+static const char* gui_fselect_time_format_clock(int change, int arg)
+{
+    static const char* time_format_clocks[] = { "24H", "12H" };
+
+    gui_enum_value_change(&conf.fselect_time_format_clock, change, sizeof(time_format_clocks) / sizeof(time_format_clocks[0]));
+
+    return time_format_clocks[conf.fselect_time_format_clock];
+}
+
+static const char* gui_fselect_time_format_separator(int change, int arg)
+{
+    static const char* time_format_separators[] = { ":", "." };
+
+    gui_enum_value_change(&conf.fselect_time_format_separator, change, sizeof(time_format_separators) / sizeof(time_format_separators[0]));
+
+    return time_format_separators[conf.fselect_time_format_separator];
 }
 
 static CMenuItem fselect_submenu_items[] = {
-    MENU_ITEM(0x59, LANG_MENU_OSD_SHOW_HIDDENFILES,   MENUITEM_BOOL, &conf.show_hiddenfiles,            0),
+    MENU_ITEM(0x59, LANG_MENU_OSD_SHOW_HIDDENFILES,          MENUITEM_BOOL, &conf.show_hiddenfiles,            0),
 #if defined(CAM_DRYOS)
-    MENU_ITEM(0x5c, LANG_MENU_DISABLE_LFN_SUPPORT,    MENUITEM_BOOL, &conf.disable_lfn_parser_ui,       0),
+    MENU_ITEM(0x5c, LANG_MENU_DISABLE_LFN_SUPPORT,           MENUITEM_BOOL, &conf.disable_lfn_parser_ui,       0),
 #endif
-    MENU_ITEM(0x5f, LANG_MENU_FSELECT_DATE_FORMAT,    MENUITEM_ENUM, gui_fselect_date_format,           0),
-    MENU_ITEM(0x5f, LANG_MENU_FSELECT_TIME_FORMAT,    MENUITEM_ENUM, gui_fselect_time_format,           0),
-    MENU_ITEM(0x5c, LANG_MENU_FSELECT_COMPUTE_HASHES, MENUITEM_BOOL, &conf.fselect_compute_hashes,      0),
-    MENU_ITEM(0x5c, "  MD5",                          MENUITEM_BOOL, &conf.fselect_compute_hash_md5,    0),
-    MENU_ITEM(0x5c, "  SHA-1",                        MENUITEM_BOOL, &conf.fselect_compute_hash_sha1,   0),
-    MENU_ITEM(0x5c, "  SHA-256",                      MENUITEM_BOOL, &conf.fselect_compute_hash_sha256, 0),
+    MENU_ITEM(0x5f, LANG_MENU_FSELECT_DATE_FORMAT_ORDER,     MENUITEM_ENUM, gui_fselect_date_format_order,     0),
+    MENU_ITEM(0x5f, LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR, MENUITEM_ENUM, gui_fselect_date_format_separator, 0),
+    MENU_ITEM(0x5f, LANG_MENU_FSELECT_TIME_FORMAT_CLOCK,     MENUITEM_ENUM, gui_fselect_time_format_clock,     0),
+    MENU_ITEM(0x5f, LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR, MENUITEM_ENUM, gui_fselect_time_format_separator, 0),
+    MENU_ITEM(0x5c, LANG_MENU_FSELECT_COMPUTE_HASHES,        MENUITEM_BOOL, &conf.fselect_compute_hashes,      0),
+    MENU_ITEM(0x5c, "  MD5",                                 MENUITEM_BOOL, &conf.fselect_compute_hash_md5,    0),
+    MENU_ITEM(0x5c, "  SHA-1",                               MENUITEM_BOOL, &conf.fselect_compute_hash_sha1,   0),
+    MENU_ITEM(0x5c, "  SHA-256",                             MENUITEM_BOOL, &conf.fselect_compute_hash_sha256, 0),
     MENU_ITEM(0x51, LANG_MENU_BACK, MENUITEM_UP, 0, 0),
     {0}
 };

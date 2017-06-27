@@ -1492,31 +1492,52 @@ static void fselect_format_hashes(char* str, unsigned char buf[HASH_TYPE_COUNT][
     str[index - 1] = 0;
 }
 
+#define FSELECT_DATE_ORDER_DMY 0
+#define FSELECT_DATE_ORDER_MDY 1
+#define FSELECT_DATE_ORDER_YMD 2
+
+#define FSELECT_DATE_SEPARATOR_PERIOD 0
+#define FSELECT_DATE_SEPARATOR_SLASH  1
+#define FSELECT_DATE_SEPARATOR_DASH   2
+
+#define FSELECT_TIME_CLOCK_24H 0
+#define FSELECT_TIME_CLOCK_12H 1
+
+#define FSELECT_TIME_SEPARATOR_COLON  0
+#define FSELECT_TIME_SEPARATOR_PERIOD 1
+
+static int fselect_format_date(char* str, int day, int month, int year)
+{
+    static const char* date_formats[] = { "%02u.%02u.%02u", "%02u/%02u/%02u", "%02u-%02u-%02u" };
+
+    int i = conf.fselect_date_format_separator;
+    const char* format = i > 0 && i < sizeof(date_formats)
+        ? date_formats[i]
+        : date_formats[0];
+
+    switch (conf.fselect_date_format_order)
+    {
+    default:
+    case FSELECT_DATE_ORDER_DMY:
+        return sprintf(str, format, day, month, year);
+    case FSELECT_DATE_ORDER_MDY:
+        return sprintf(str, format, month, day, year);
+    case FSELECT_DATE_ORDER_YMD:
+        return sprintf(str, format, year, month, day);
+    }
+}
+
 static int fselect_format_date_short(int indent, char* str, struct tm *time)
 {
     int day = time->tm_mday;
-    int month = month;
-    int year = (time->tm_year<100) ? time->tm_year : time->tm_year - 100;
-    int i, index = 0;
+    int month = time->tm_mon + 1;
+    int year = (time->tm_year < 100) ? time->tm_year : time->tm_year - 100;
 
+    int i, index = 0;
     for (i = 0; i < indent; i++)
         str[index++] = ' ';
 
-    switch (conf.fselect_date_format)
-    {
-    default:
-        index += sprintf(&str[index], "%02u.%02u.%02u", day, month, year);
-        break;
-    case 1:
-        index += sprintf(&str[index], "%02u/%02u/%02u", day, month, year);
-        break;
-    case 2:
-        index += sprintf(&str[index], "%02u-%02u-%02u", month, day, year);
-        break;
-    case 3:
-        index += sprintf(&str[index], "%02u-%02u-%02u", year, month, day);
-        break;
-    }
+    index += fselect_format_date(&str[index], day, month, year);
 
     return index;
 }
@@ -1526,69 +1547,63 @@ static int fselect_format_date_long(int indent, char* str, struct tm *time)
     int day = time->tm_mday;
     int month = time->tm_mon + 1;
     int year = (time->tm_year < 100) ? time->tm_year + 2000 : time->tm_year + 1900;
-    int i, index = 0;
 
+    int i, index = 0;
     for (i = 0; i < indent; i++)
         str[index++] = ' ';
 
     index += sprintf(&str[index], lang_str(LANG_FSELECT_LABEL_DATE));
-
-    switch (conf.fselect_date_format)
-    {
-    default:
-        index += sprintf(&str[index], "%02u.%02u.%04u", day, month, year);
-        break;
-    case 1:
-        index += sprintf(&str[index], "%02u/%02u/%04u", day, month, year);
-        break;
-    case 2:
-        index += sprintf(&str[index], "%02u-%02u-%04u", month, day, year);
-        break;
-    case 3:
-        index += sprintf(&str[index], "%04u-%02u-%02u", year, month, day);
-        break;
-    }
-
-    str[index++] = '\n';
+    index += fselect_format_date(&str[index], day, month, year);
 
     return index;
 }
 
 static int fselect_format_time_short(int indent, char* str, struct tm *time)
 {
-    int i, index = 0;
+    static const char* short_time_formats[] = { "%02u:%02u", "%02u.%02u" };
 
+    int i = conf.fselect_time_format_separator;
+    const char* format = i > 0 && i < sizeof(short_time_formats)
+        ? short_time_formats[i]
+        : short_time_formats[0];
+
+    int index = 0;
     for (i = 0; i < indent; i++)
         str[index++] = ' ';
 
-    index += sprintf(&str[index], "%02u:%02u", time->tm_hour, time->tm_min);
+    index += sprintf(&str[index], format, time->tm_hour, time->tm_min);
 
     return index;
 }
 
 static int fselect_format_time_long(int indent, char* str, struct tm *time)
 {
-    int i, index = 0;
+    static const char* long_time_formats[] = { "%s%02u:%02u:%02u%s", "%s%02u.%02u.%02u%s" };
 
+    int i = conf.fselect_time_format_separator;
+    const char* format = i > 0 && i < sizeof(long_time_formats)
+        ? long_time_formats[i]
+        : long_time_formats[0];
+
+    int index = 0;
     for (i = 0; i < indent; i++)
         str[index++] = ' ';
 
     index += sprintf(&str[index], lang_str(LANG_FSELECT_LABEL_TIME));
 
-    switch (conf.fselect_time_format)
+    switch (conf.fselect_time_format_clock)
     {
     default:
-        index += sprintf(&str[index], "  %02u:%02u:%02u", time->tm_hour, time->tm_min, time->tm_sec);
+    case FSELECT_TIME_CLOCK_24H:
+        index += sprintf(&str[index], format, "  ", time->tm_hour, time->tm_min, time->tm_sec, "");
         break;
-    case 1:
+    case FSELECT_TIME_CLOCK_12H:
         if (time->tm_hour >= 0 && time->tm_hour < 12)
-            index += sprintf(&str[index], "%02u:%02u:%02uAM", time->tm_hour > 0 ? time->tm_hour : time->tm_hour + 12, time->tm_min, time->tm_sec);
+            index += sprintf(&str[index], format, "", time->tm_hour > 0 ? time->tm_hour : time->tm_hour + 12, time->tm_min, time->tm_sec, "AM");
         else
-            index += sprintf(&str[index], "%02u:%02u:%02uPM", time->tm_hour > 12 ? time->tm_hour - 12 : time->tm_hour, time->tm_min, time->tm_sec);
+            index += sprintf(&str[index], format, "", time->tm_hour > 12 ? time->tm_hour - 12 : time->tm_hour, time->tm_min, time->tm_sec, "PM");
         break;
     }
-
-    str[index++] = '\n';
 
     return index;
 }
@@ -1626,8 +1641,6 @@ static int fselect_format_size_long(int indent, char* str, unsigned long size)
 
     index += sprintf(&str[index], "%s%12d", lang_str(LANG_FSELECT_LABEL_SIZE), size);
 
-    str[index++] = '\n';
-
     return index;
 }
 
@@ -1658,15 +1671,17 @@ static void fselect_properties()
     
     indent = calc_hashes > 0 ? 8 : 0;
     index += fselect_format_date_long(indent, &str[index], time);
+    str[index++] = '\n';
     index += fselect_format_time_long(indent, &str[index], time);
+    str[index++] = '\n';
     if (!selected->isdir)
         index += fselect_format_size_long(indent, &str[index], st.st_size);
 
     if (calc_hashes)
     {
+        str[index++] = '\n';
         if (!fselect_calc_hashes(buf, st.st_size))
             return;
-
         fselect_format_hashes(&str[index], buf);
     }
 
