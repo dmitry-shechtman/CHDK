@@ -497,13 +497,13 @@ static ConfInfo conf_info[] = {
     CONF_INFO(250, conf.disable_lfn_parser_ui,                  CONF_DEF_VALUE, i:0),
 
     CONF_INFO(260, conf.fselect_date_format_order,              CONF_DEF_VALUE, i:0),
-    CONF_INFO(260, conf.fselect_date_format_separator,          CONF_DEF_VALUE, i:0),
-    CONF_INFO(261, conf.fselect_time_format_clock,              CONF_DEF_VALUE, i:0),
-    CONF_INFO(261, conf.fselect_time_format_separator,          CONF_DEF_VALUE, i:0),
-    CONF_INFO(262, conf.fselect_compute_hashes,                 CONF_DEF_VALUE, i:0),
-    CONF_INFO(262, conf.fselect_compute_hash_md5,               CONF_DEF_VALUE, i:0),
-    CONF_INFO(262, conf.fselect_compute_hash_sha1,              CONF_DEF_VALUE, i:0),
-    CONF_INFO(262, conf.fselect_compute_hash_sha256,            CONF_DEF_VALUE, i:0),
+    CONF_INFO(261, conf.fselect_date_format_separator,          CONF_DEF_VALUE, i:0),
+    CONF_INFO(262, conf.fselect_time_format_clock,              CONF_DEF_VALUE, i:0),
+    CONF_INFO(263, conf.fselect_time_format_separator,          CONF_DEF_VALUE, i:0),
+    CONF_INFO(264, conf.fselect_compute_hashes,                 CONF_DEF_VALUE, i:0),
+    CONF_INFO(265, conf.fselect_compute_hash_md5,               CONF_DEF_VALUE, i:0),
+    CONF_INFO(266, conf.fselect_compute_hash_sha1,              CONF_DEF_VALUE, i:0),
+    CONF_INFO(267, conf.fselect_compute_hash_sha256,            CONF_DEF_VALUE, i:0),
 
     CONF_INFO(999, conf.script_allow_lua_native_calls,          CONF_DEF_VALUE, i:0),
 
