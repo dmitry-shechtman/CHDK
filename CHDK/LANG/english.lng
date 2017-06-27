@@ -812,4 +812,5 @@
 686 "Time clock"
 687 "Date separator"
 688 "Time separator"
-689 "Compute hashes"
+689 "Hashes"
+690 "Compute hashes"
