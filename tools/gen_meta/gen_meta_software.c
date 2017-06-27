@@ -333,13 +333,11 @@ static int meta_encoding_write(const meta_encoding_t* encoding, JSON* json)
 		fprintf(stderr, "Missing encoding name\n");
 		result = -1;
 	}
-	else
-	{
-		json_write_object_array_sep(json);
-	}
 
 	if (encoding->version > 0 && encoding->version <= VITALY)
 	{
+		if (encoding->name != NULL)
+			json_write_object_array_sep(json);
 		static char str[12];
 		int i, j;
 		j = 0;
