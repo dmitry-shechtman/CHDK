@@ -1522,7 +1522,7 @@ static void fselect_format_hashes(char* str, unsigned char buf[HASH_TYPE_COUNT][
     str[index - 1] = 0;
 }
 
-static int fselect_format_date(int indent, char* str, struct tm *time)
+static int fselect_format_date_long(int indent, char* str, struct tm *time)
 {
     int day = time->tm_mday;
     int month = time->tm_mon + 1;
@@ -1555,7 +1555,7 @@ static int fselect_format_date(int indent, char* str, struct tm *time)
     return index;
 }
 
-static int fselect_format_time(int indent, char* str, struct tm *time)
+static int fselect_format_time_long(int indent, char* str, struct tm *time)
 {
     int i, index = 0;
 
@@ -1582,7 +1582,7 @@ static int fselect_format_time(int indent, char* str, struct tm *time)
     return index;
 }
 
-static int fselect_format_size(int indent, char* str, unsigned long size)
+static int fselect_format_size_long(int indent, char* str, unsigned long size)
 {
     int i, index = 0;
 
@@ -1622,10 +1622,10 @@ static void fselect_properties()
     time = localtime(&st.st_mtime);
     
     indent = calc_hashes > 0 ? 8 : 0;
-    index += fselect_format_date(indent, &str[index], time);
-    index += fselect_format_time(indent, &str[index], time);
+    index += fselect_format_date_long(indent, &str[index], time);
+    index += fselect_format_time_long(indent, &str[index], time);
     if (!selected->isdir)
-        index += fselect_format_size(indent, &str[index], st.st_size);
+        index += fselect_format_size_long(indent, &str[index], st.st_size);
 
     if (calc_hashes)
     {
