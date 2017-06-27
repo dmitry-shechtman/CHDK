@@ -1522,16 +1522,15 @@ static void fselect_format_hashes(char* str, unsigned char buf[HASH_TYPE_COUNT][
     str[index - 1] = 0;
 }
 
-static int fselect_format_date(int calc_hashes, char* str, struct tm *time)
+static int fselect_format_date(int indent, char* str, struct tm *time)
 {
     int day = time->tm_mday;
     int month = time->tm_mon + 1;
     int year = (time->tm_year < 100) ? time->tm_year + 2000 : time->tm_year + 1900;
     int i, index = 0;
 
-    if (calc_hashes)
-        for (i = 0; i < 8; i++)
-            str[index++] = ' ';
+    for (i = 0; i < indent; i++)
+        str[index++] = ' ';
 
     index += sprintf(&str[index], lang_str(LANG_FSELECT_LABEL_DATE));
 
@@ -1556,13 +1555,12 @@ static int fselect_format_date(int calc_hashes, char* str, struct tm *time)
     return index;
 }
 
-static int fselect_format_time(int calc_hashes, char* str, struct tm *time)
+static int fselect_format_time(int indent, char* str, struct tm *time)
 {
     int i, index = 0;
 
-    if (calc_hashes)
-        for (i = 0; i < 8; i++)
-            str[index++] = ' ';
+    for (i = 0; i < indent; i++)
+        str[index++] = ' ';
 
     index += sprintf(&str[index], lang_str(LANG_FSELECT_LABEL_TIME));
 
@@ -1584,13 +1582,12 @@ static int fselect_format_time(int calc_hashes, char* str, struct tm *time)
     return index;
 }
 
-static int fselect_format_size(int calc_hashes, char* str, unsigned long size)
+static int fselect_format_size(int indent, char* str, unsigned long size)
 {
     int i, index = 0;
 
-    if (calc_hashes)
-        for (i = 0; i < 8; i++)
-            str[index++] = ' ';
+    for (i = 0; i < indent; i++)
+        str[index++] = ' ';
 
     index += sprintf(&str[index], "%s%12d", lang_str(LANG_FSELECT_LABEL_SIZE), size);
 
@@ -1608,24 +1605,27 @@ static void fselect_properties()
     static char str[256];
     struct tm *time;
     int i, index = 0;
-    int calc_hashes = 0;
+    int calc_hashes;
+    int indent;
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
 
     if (stat(selected_file, &st))
         return;
 
+    calc_hashes = 0;
     if (!selected->isdir && conf.fselect_compute_hashes && st.st_size <= HASH_MAX_SIZE)
         for (i = 0; i < HASH_TYPE_COUNT; i++)
             if (*fselect_hash[i].conf)
-                calc_hashes = 1;
+                calc_hashes++;
 
     time = localtime(&st.st_mtime);
     
-    index += fselect_format_date(calc_hashes, &str[index], time);
-    index += fselect_format_time(calc_hashes, &str[index], time);
+    indent = calc_hashes > 0 ? 8 : 0;
+    index += fselect_format_date(indent, &str[index], time);
+    index += fselect_format_time(indent, &str[index], time);
     if (!selected->isdir)
-        index += fselect_format_size(calc_hashes, &str[index], st.st_size);
+        index += fselect_format_size(indent, &str[index], st.st_size);
 
     if (calc_hashes)
     {
