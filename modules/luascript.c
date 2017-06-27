@@ -514,11 +514,29 @@ static int luaCB_get_partitionInfo( lua_State* L )
 {
     if (camera_info.cam_has_multipart)
     {
+      int part;
+      int count = get_part_count();
+      int active = get_active_partition();
+      switch (lua_gettop(L))
+      {
+      case 0:
+        part = 0;
+        break;
+      case 1:
+        part = luaL_checknumber(L, 1);
+        if (part < 1 || part > count)
+        {
+          return luaL_error(L, "invalid partition number");
+        }
+        break;
+      default:
+         return luaL_error(L, "invalid argument count");
+      }
       lua_createtable(L, 0, 4);
-      SET_INT_FIELD("count",  get_part_count());
-      SET_INT_FIELD("active", get_active_partition());
-      SET_INT_FIELD("type",   get_part_type(1));
-      SET_INT_FIELD("size",   get_part_size(1)>>10);
+      SET_INT_FIELD("count",  count);
+      SET_INT_FIELD("active", active);
+      SET_INT_FIELD("type",   get_part_type(part));
+      SET_INT_FIELD("size",   get_part_size(part)>>10);
       return 1;
     }
     return 0;
