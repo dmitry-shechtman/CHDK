@@ -1219,7 +1219,7 @@ int get_part_size(int part)
   if (is_mbr_loaded())
   {
     if (part == 0)
-      part = get_active_partition();
+      return GetTotalCardSpaceKb();
     int a = mbr_buf[0x01CA + (part - 1) * 16];
     int b = mbr_buf[0x01CB + (part - 1) * 16];
     int c = mbr_buf[0x01CC + (part - 1) * 16];
