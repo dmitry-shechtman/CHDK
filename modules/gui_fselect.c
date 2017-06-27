@@ -746,6 +746,9 @@ void gui_fselect_init(int title, const char* prev_dir, const char* default_dir, 
     gui_fselect_mode_old = gui_set_mode(&GUI_MODE_FSELECT_MODULE);
 }
 
+static int fselect_format_date_short(int indent, char* str, struct tm *time);
+static int fselect_format_time_short(int indent, char* str, struct tm *time);
+
 //-------------------------------------------------------------------
 void gui_fselect_draw(int enforce_redraw)
 {
@@ -856,22 +859,8 @@ void gui_fselect_draw(int enforce_redraw)
             if (ptr->mtime)
             {
                 struct tm *time = localtime(&(ptr->mtime));
-                switch (conf.fselect_date_format)
-                {
-                default:
-                    j += sprintf(dbuf + j, "%02u.%02u.%02u", time->tm_mday, time->tm_mon + 1, (time->tm_year<100) ? time->tm_year : time->tm_year - 100);
-                    break;
-                case 1:
-                    j += sprintf(dbuf + j, "%02u/%02u/%02u", time->tm_mday, time->tm_mon + 1, (time->tm_year<100) ? time->tm_year : time->tm_year - 100);
-                    break;
-                case 2:
-                    j += sprintf(dbuf + j, "%02u-%02u-%02u", time->tm_mon + 1, time->tm_mday, (time->tm_year<100) ? time->tm_year : time->tm_year - 100);
-                    break;
-                case 3:
-                    j += sprintf(dbuf + j, "%02u-%02u-%02u", (time->tm_year<100) ? time->tm_year : time->tm_year - 100, time->tm_mon + 1, time->tm_mday);
-                    break;
-                }
-                sprintf(dbuf + j, " %02u:%02u", time->tm_hour, time->tm_min);
+                j += fselect_format_date_short(0, &dbuf[j], time);
+                j += fselect_format_time_short(1, &dbuf[j], time);
             }
             else
             {
@@ -1522,6 +1511,35 @@ static void fselect_format_hashes(char* str, unsigned char buf[HASH_TYPE_COUNT][
     str[index - 1] = 0;
 }
 
+static int fselect_format_date_short(int indent, char* str, struct tm *time)
+{
+    int day = time->tm_mday;
+    int month = month;
+    int year = (time->tm_year<100) ? time->tm_year : time->tm_year - 100;
+    int i, index = 0;
+
+    for (i = 0; i < indent; i++)
+        str[index++] = ' ';
+
+    switch (conf.fselect_date_format)
+    {
+    default:
+        index += sprintf(&str[index], "%02u.%02u.%02u", day, month, year);
+        break;
+    case 1:
+        index += sprintf(&str[index], "%02u/%02u/%02u", day, month, year);
+        break;
+    case 2:
+        index += sprintf(&str[index], "%02u-%02u-%02u", month, day, year);
+        break;
+    case 3:
+        index += sprintf(&str[index], "%02u-%02u-%02u", year, month, day);
+        break;
+    }
+
+    return index;
+}
+
 static int fselect_format_date_long(int indent, char* str, struct tm *time)
 {
     int day = time->tm_mday;
@@ -1551,6 +1569,18 @@ static int fselect_format_date_long(int indent, char* str, struct tm *time)
     }
 
     str[index++] = '\n';
+
+    return index;
+}
+
+static int fselect_format_time_short(int indent, char* str, struct tm *time)
+{
+    int i, index = 0;
+
+    for (i = 0; i < indent; i++)
+        str[index++] = ' ';
+
+    index += sprintf(&str[index], "%02u:%02u", time->tm_hour, time->tm_min);
 
     return index;
 }
