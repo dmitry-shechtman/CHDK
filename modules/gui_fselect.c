@@ -1675,6 +1675,46 @@ static int fselect_format_attributes(int indent, char* str, unsigned int attr)
     return index;
 }
 
+static int fselect_get_readme(char* readme)
+{
+    FILE* f;
+    int i, len;
+
+    sprintf(selected_file, "%s/%s/readme.txt", items.dir, selected->name);
+    if (!(f = fopen(selected_file, "r")))
+        return 0;
+
+    i = fread(readme, 1, MBOX_TEXT_WIDTH, f);
+    readme[i] = 0;
+    fclose(f);
+
+    for (i = 0, len = 0; readme[i] && readme[i] != '\n'; i++)
+        if (readme[i] != '\r')
+            len++;
+
+    return len;
+}
+
+static int fselect_format_readme(char* str, const char* readme, int len)
+{
+    int index = 0;
+    int i;
+
+    if (len == 0)
+        return index;
+
+    str[index++] = '\n';
+    str[index++] = '\n';
+
+    for (i = 0; readme[i] && readme[i] != '\n'; i++)
+        if (readme[i] != '\r')
+            str[index++] = readme[i];
+
+    str[index++] = '\0';
+
+    return index;
+}
+
 static void fselect_properties()
 {
     static struct stat st;
@@ -1684,6 +1724,8 @@ static void fselect_properties()
 #else
     static char str[256];
 #endif
+    static char readme[40];
+    int readme_len;
     struct tm *time;
     int i, index = 0;
     int calc_hashes;
@@ -1714,6 +1756,10 @@ static void fselect_properties()
 #endif
     }
 
+    readme_len = 0;
+    if (selected->isdir)
+        readme_len = fselect_get_readme(readme);
+
     time = localtime(&st.st_mtime);
     
     len = MIN_TEXT_WIDTH;
@@ -1723,6 +1769,8 @@ static void fselect_properties()
         int l = strlen(selected->name);
         if (l > MIN_TEXT_WIDTH)
             len = l + 8;
+        if (readme_len > MIN_TEXT_WIDTH && readme_len < len)
+            len = readme_len;
     }
     indent = MBOX_TEXT_WIDTH / 2 - len / 2;
 
@@ -1744,6 +1792,9 @@ static void fselect_properties()
             return;
         fselect_format_hashes(&str[index], calc_hashes, buf);
     }
+
+    if (selected->isdir)
+        index += fselect_format_readme(&str[index], readme, readme_len);
 
     gui_mbox_init((int)selected->name, (int)str, MBOX_BTN_OK, NULL);
 }
