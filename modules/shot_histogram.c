@@ -4,6 +4,7 @@
 #include "shot_histogram.h"
 #include "raw.h"
 #include "file_counter.h"
+#include "gui_lang.h"
 
 #define SHOT_HISTOGRAM_STEP     31
 
@@ -158,7 +159,7 @@ ModuleInfo _module_info =
     ANY_CHDK_BRANCH, 0, OPT_ARCHITECTURE,        // Requirements of CHDK version
     ANY_PLATFORM_ALLOWED,       // Specify platform dependency
 
-    (int32_t)"Shot Histogram",
+    -LANG_MODULE_SHOT_HISTO,
     MTYPE_EXTENSION,
 
     &_libshothisto.base,

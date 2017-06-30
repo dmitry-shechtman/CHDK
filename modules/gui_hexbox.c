@@ -251,7 +251,7 @@ ModuleInfo _module_info =
     ANY_CHDK_BRANCH, 0, OPT_ARCHITECTURE,         // Requirements of CHDK version
     ANY_PLATFORM_ALLOWED,       // Specify platform dependency
 
-    (int32_t)"Hex number editor",
+    -LANG_MODULE_HEXBOX,
     MTYPE_EXTENSION,
 
     &_libhexbox.base,

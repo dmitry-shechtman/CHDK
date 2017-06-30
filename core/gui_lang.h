@@ -794,12 +794,24 @@
 #define LANG_MODULE_LUA                         665
 #define LANG_MODULE_MOTION_DETECT               666
 #define LANG_MODULE_POPUP_MENU                  667
+#define LANG_MODULE_RAW_OP                      668
+#define LANG_MODULE_SHOT_HISTO                  669
+#define LANG_MODULE_HEXBOX                      670
+#define LANG_MODULE_TEXTBOX                     671
 
+#define LANG_POPUP_EDIT                         672
+#define LANG_POPUP_SET_CHDK                     673
+#define LANG_POPUP_RAW_OPS                      674
+#define LANG_POPUP_PROPERTIES                   675
+#define LANG_POPUP_DNG_TO_CHDK_RAW              676
+#define LANG_FSELECT_REBOOT                     677
+#define LANG_FSELECT_SET_CHDK_TITLE             678
+#define LANG_FSELECT_SET_CHDK_TEXT              679
 #define LANG_FSELECT_LABEL_DATE                 680
 #define LANG_FSELECT_LABEL_TIME                 681
 #define LANG_FSELECT_LABEL_SIZE                 682
 #define LANG_FSELECT_LABEL_ATTR                 683
-#define LANG_FSELECT_LABEL_PROPERTIES           684
+
 #define LANG_FSELECT_FORMAT_PROGRESS            685
 #define LANG_MENU_FILE_BROWSER                  686
 #define LANG_MENU_FSELECT_DATE_FORMAT_ORDER     687

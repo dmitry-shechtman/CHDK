@@ -451,7 +451,7 @@ ModuleInfo _module_info =
     ANY_CHDK_BRANCH, 0, OPT_ARCHITECTURE,			// Requirements of CHDK version
     ANY_PLATFORM_ALLOWED,		// Specify platform dependency
 
-    (int32_t)"Curves (dll)",
+    -LANG_MENU_CURVE_PARAM_TITLE,
     MTYPE_EXTENSION,            //Apply curves to shots. Only 10bit sensor version
 
     &_libcurves.base,

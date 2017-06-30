@@ -842,7 +842,7 @@ ModuleInfo _module_info =
     ANY_CHDK_BRANCH, 0, OPT_ARCHITECTURE,			// Requirements of CHDK version
     ANY_PLATFORM_ALLOWED,		// Specify platform dependency
 
-    (int32_t)"Zebra Overlay (dll)",
+    -LANG_MENU_ZEBRA_TITLE,
     MTYPE_EXTENSION,
 
     &_libzebra.base,
