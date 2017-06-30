@@ -2041,7 +2041,7 @@ static CMenuItem fselect_submenu_items[] = {
 #endif
     MENU_ENUM2(0x36, LANG_MENU_FSELECT_DATE_FORMAT_ORDER,     &conf.fselect_date_format_order,     gui_fselect_date_format_orders),
     MENU_ENUM2(0x36, LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR, &conf.fselect_date_format_separator, gui_fselect_date_format_separators),
-    MENU_ENUM2(0x34, LANG_MENU_FSELECT_TIME_FORMAT_CLOCK,     &conf.fselect_time_format_clock,     gui_clock_format_modes),
+    MENU_ENUM2(0x34, LANG_MENU_OSD_CLOCK_FORMAT,              &conf.fselect_time_format_clock,     gui_clock_format_modes),
     MENU_ENUM2(0x34, LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR, &conf.fselect_time_format_separator, gui_fselect_time_format_separators),
 #if FSELECT_MULTI_HASHES
     MENU_ITEM (0x28, LANG_MENU_FSELECT_HASHES,                MENUITEM_SUBMENU,                    &fselect_hashes_submenu,           0),

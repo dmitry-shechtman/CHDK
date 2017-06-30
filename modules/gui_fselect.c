@@ -143,7 +143,7 @@ static struct mpopup_item popup[]= {
         { MPOPUP_EDITOR,        (int)"Edit" },
         { MPOPUP_CHDK_REPLACE,  (int)"Set this CHDK" },
         { MPOPUP_RAWOPS,        (int)"Raw ops ->" },
-        { MPOPUP_PROPERTIES,    (int)"Properties" },
+        { MPOPUP_PROPERTIES,    (int)LANG_POPUP_PROPERTIES },
         { 0,                    0 },
 };
 
@@ -1464,7 +1464,7 @@ static int fselect_calc_hashes(int calc_hashes, unsigned char buf[HASH_TYPE_COUN
             if (progress == 0 || progress < pos * 100 / size)
             {
                 progress = pos * 100 / size;
-                sprintf(str, "%d of %d (%d%%)", pos, size, progress);
+                sprintf(str, lang_str(LANG_FSELECT_FORMAT_PROGRESS), pos, size, progress);
                 gui_browser_progress_show(str, progress);
             }
         }
