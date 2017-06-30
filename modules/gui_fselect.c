@@ -745,8 +745,8 @@ void gui_fselect_init(int title, const char* prev_dir, const char* default_dir, 
     gui_fselect_mode_old = gui_set_mode(&GUI_MODE_FSELECT_MODULE);
 }
 
-static int fselect_format_date_short(int indent, char* str, struct tm *time);
-static int fselect_format_time_short(int indent, char* str, struct tm *time);
+static int fselect_format_date_short(char* str, struct tm *time);
+static int fselect_format_time_short(char* str, struct tm *time);
 static int fselect_format_size_short(char* str, unsigned long n);
 
 //-------------------------------------------------------------------
@@ -839,8 +839,9 @@ void gui_fselect_draw(int enforce_redraw)
             if (ptr->mtime)
             {
                 struct tm *time = localtime(&(ptr->mtime));
-                j += fselect_format_date_short(0, &dbuf[j], time);
-                j += fselect_format_time_short(1, &dbuf[j], time);
+                j += fselect_format_date_short(&dbuf[j], time);
+                dbuf[j++] = ' ';
+                j += fselect_format_time_short(&dbuf[j], time);
             }
             else
             {
@@ -1502,7 +1503,11 @@ static void fselect_format_hashes(char* str, int calc_hashes, unsigned char buf[
             }
 
             if (str[index - 1] != '\n')
+            {
+                while (j++ < MBOX_TEXT_WIDTH)
+                    str[index++] = ' ';
                 str[index++] = '\n';
+            }
         }
     }
     str[index - 1] = 0;
@@ -1543,30 +1548,22 @@ static int fselect_format_date(char* str, int day, int month, int year)
     }
 }
 
-static int fselect_format_date_short(int indent, char* str, struct tm *time)
+static int fselect_format_date_short(char* str, struct tm *time)
 {
     int day = time->tm_mday;
     int month = time->tm_mon + 1;
     int year = (time->tm_year < 100) ? time->tm_year : time->tm_year - 100;
 
-    int i, index = 0;
-    for (i = 0; i < indent; i++)
-        str[index++] = ' ';
-
-    index += fselect_format_date(&str[index], day, month, year);
-
-    return index;
+    return fselect_format_date(str, day, month, year);
 }
 
-static int fselect_format_date_long(int indent, char* str, struct tm *time)
+static int fselect_format_date_long(char* str, struct tm *time)
 {
     int day = time->tm_mday;
     int month = time->tm_mon + 1;
     int year = (time->tm_year < 100) ? time->tm_year + 2000 : time->tm_year + 1900;
 
-    int i, index = 0;
-    for (i = 0; i < indent; i++)
-        str[index++] = ' ';
+    int index = 0;
 
     index += sprintf(&str[index], lang_str(LANG_FSELECT_LABEL_DATE));
     index += fselect_format_date(&str[index], day, month, year);
@@ -1574,7 +1571,7 @@ static int fselect_format_date_long(int indent, char* str, struct tm *time)
     return index;
 }
 
-static int fselect_format_time_short(int indent, char* str, struct tm *time)
+static int fselect_format_time_short(char* str, struct tm *time)
 {
     static const char* short_time_formats[] = { "%02u:%02u", "%02u.%02u" };
 
@@ -1583,16 +1580,10 @@ static int fselect_format_time_short(int indent, char* str, struct tm *time)
         ? short_time_formats[i]
         : short_time_formats[0];
 
-    int index = 0;
-    for (i = 0; i < indent; i++)
-        str[index++] = ' ';
-
-    index += sprintf(&str[index], format, time->tm_hour, time->tm_min);
-
-    return index;
+    return sprintf(str, format, time->tm_hour, time->tm_min);
 }
 
-static int fselect_format_time_long(int indent, char* str, struct tm *time)
+static int fselect_format_time_long(char* str, struct tm *time)
 {
     static const char* long_time_formats[] = { "%s%02u:%02u:%02u%s", "%s%02u.%02u.%02u%s" };
 
@@ -1602,8 +1593,6 @@ static int fselect_format_time_long(int indent, char* str, struct tm *time)
         : long_time_formats[0];
 
     int index = 0;
-    for (i = 0; i < indent; i++)
-        str[index++] = ' ';
 
     index += sprintf(&str[index], lang_str(LANG_FSELECT_LABEL_TIME));
 
@@ -1648,31 +1637,19 @@ static int fselect_format_size_short(char* str, unsigned long n)
     return SIZE_SIZE;
 }
 
-static int fselect_format_size_long(int indent, char* str, unsigned long size)
+static int fselect_format_size_long(char* str, unsigned long size)
 {
-    int i, index = 0;
-    for (i = 0; i < indent; i++)
-        str[index++] = ' ';
-
-    index += sprintf(&str[index], "%s%12d", lang_str(LANG_FSELECT_LABEL_SIZE), size);
-
-    return index;
+    return sprintf(str, "%s%12d", lang_str(LANG_FSELECT_LABEL_SIZE), size);
 }
 
-static int fselect_format_attributes(int indent, char* str, unsigned int attr)
+static int fselect_format_attributes(char* str, unsigned int attr)
 {
     char r = attr & DOS_ATTR_RDONLY    ? 'R' : '-';
     char h = attr & DOS_ATTR_HIDDEN    ? 'H' : '-';
     char a = attr & DOS_ATTR_ARCHIVE   ? 'A' : '-';
     char d = attr & DOS_ATTR_DIRECTORY ? 'D' : '-';
 
-    int i, index = 0;
-    for (i = 0; i < indent; i++)
-        str[index++] = ' ';
-
-    index += sprintf(&str[index], "%s%c%c%c%c", lang_str(LANG_FSELECT_LABEL_ATTR), r, h, a, d);
-
-    return index;
+    return sprintf(str, "%s%c%c%c%c", lang_str(LANG_FSELECT_LABEL_ATTR), r, h, a, d);
 }
 
 static int fselect_get_readme(char* readme)
@@ -1725,7 +1702,6 @@ static void fselect_properties()
     struct tm *time;
     int i, index = 0;
     int calc_hashes;
-    int len, indent;
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
 
@@ -1745,28 +1721,16 @@ static void fselect_properties()
 
     time = localtime(&st.st_mtime);
     
-    len = MIN_TEXT_WIDTH;
-    if (!calc_hashes)
-    {
-        len = MBOX_TEXT_WIDTH;
-        int l = strlen(selected->name);
-        if (l > MIN_TEXT_WIDTH)
-            len = l + 8;
-        if (readme_len > MIN_TEXT_WIDTH && readme_len < len)
-            len = readme_len;
-    }
-    indent = MBOX_TEXT_WIDTH / 2 - len / 2;
-
-    index += fselect_format_date_long(indent, &str[index], time);
+    index += fselect_format_date_long(&str[index], time);
     str[index++] = '\n';
-    index += fselect_format_time_long(indent, &str[index], time);
+    index += fselect_format_time_long(&str[index], time);
     str[index++] = '\n';
     if (!selected->isdir)
     {
-        index += fselect_format_size_long(indent, &str[index], st.st_size);
+        index += fselect_format_size_long(&str[index], st.st_size);
         str[index++] = '\n';
     }
-    index += fselect_format_attributes(indent, &str[index], st.st_attrib);
+    index += fselect_format_attributes(&str[index], st.st_attrib);
 
     if (calc_hashes)
     {
@@ -1781,7 +1745,7 @@ static void fselect_properties()
     if (selected->isdir)
         index += fselect_format_readme(&str[index], readme, readme_len);
 
-    gui_mbox_init((int)selected->name, (int)str, MBOX_BTN_OK, NULL);
+    gui_mbox_init((int)selected->name, (int)str, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
 }
 
 static void mkdir_cb(const char* name)
