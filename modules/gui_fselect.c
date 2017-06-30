@@ -1719,11 +1719,7 @@ static void fselect_properties()
 {
     static struct stat st;
     static unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE];
-#if FSELECT_MULTI_HASHES
-    static char str[512];
-#else
     static char str[256];
-#endif
     static char readme[40];
     int readme_len;
     struct tm *time;
@@ -1740,20 +1736,7 @@ static void fselect_properties()
     if (!selected->isdir && conf.fselect_compute_hashes
         && (conf.fselect_hash_size_limit == 0 || st.st_size <= ((unsigned long)conf.fselect_hash_size_limit << 20)))
     {
-#if FSELECT_MULTI_HASHES
-        if (conf.fselect_compute_hash_md5)
-            calc_hashes |= MPOPUP_HASH_MD5;
-        if (conf.fselect_compute_hash_sha1)
-            calc_hashes |= MPOPUP_HASH_SHA1;
-        if (conf.fselect_compute_hash_sha256)
-            calc_hashes |= MPOPUP_HASH_SHA256;
-        if (conf.fselect_compute_hash_sha384)
-            calc_hashes |= MPOPUP_HASH_SHA384;
-        if (conf.fselect_compute_hash_sha512)
-            calc_hashes |= MPOPUP_HASH_SHA512;
-#else
         calc_hashes = 1 << (conf.fselect_compute_hashes - 1);
-#endif
     }
 
     readme_len = 0;
