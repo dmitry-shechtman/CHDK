@@ -1715,6 +1715,18 @@ static int fselect_get_script_title(char* title)
     return i;
 }
 
+static int fselect_get_module_title(char* title)
+{
+    static ModuleInfo mi;
+
+    get_module_info(selected_file, &mi, title, 33);
+
+    if (mi.moduleName < 0)
+        return sprintf(title, lang_str(-mi.moduleName));
+
+    return strlen(title);
+}
+
 static int fselect_get_title(char* title)
 {
     int len;
@@ -1726,6 +1738,8 @@ static int fselect_get_title(char* title)
     const char *ext = strrchr(selected->name, '.');
     if (chk_ext(ext, "lua") || chk_ext(ext, "bas"))
         return fselect_get_script_title(title);
+    if (chk_ext(ext, "flt"))
+        return fselect_get_module_title(title);
 
     return 0;
 }
