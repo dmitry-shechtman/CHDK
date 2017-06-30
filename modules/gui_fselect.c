@@ -1413,6 +1413,7 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
 };
 
 #define MBOX_TEXT_WIDTH 36
+#define MIN_TEXT_WIDTH 20
 #define HASH_BUFFER_SIZE 256
 #define HASH_PROGRESS_MIN_SIZE 1048576
 
@@ -1686,7 +1687,7 @@ static void fselect_properties()
     struct tm *time;
     int i, index = 0;
     int calc_hashes;
-    int indent;
+    int len, indent;
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
 
@@ -1715,7 +1716,16 @@ static void fselect_properties()
 
     time = localtime(&st.st_mtime);
     
-    indent = calc_hashes > 0 ? 8 : 0;
+    len = MIN_TEXT_WIDTH;
+    if (!calc_hashes)
+    {
+        len = MBOX_TEXT_WIDTH;
+        int l = strlen(selected->name);
+        if (l > MIN_TEXT_WIDTH)
+            len = l + 8;
+    }
+    indent = MBOX_TEXT_WIDTH / 2 - len / 2;
+
     index += fselect_format_date_long(indent, &str[index], time);
     str[index++] = '\n';
     index += fselect_format_time_long(indent, &str[index], time);
