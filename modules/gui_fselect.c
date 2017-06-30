@@ -1650,11 +1650,26 @@ static int fselect_format_size_short(char* str, unsigned long n)
 static int fselect_format_size_long(int indent, char* str, unsigned long size)
 {
     int i, index = 0;
-
     for (i = 0; i < indent; i++)
         str[index++] = ' ';
 
     index += sprintf(&str[index], "%s%12d", lang_str(LANG_FSELECT_LABEL_SIZE), size);
+
+    return index;
+}
+
+static int fselect_format_attributes(int indent, char* str, unsigned int attr)
+{
+    char r = attr & DOS_ATTR_RDONLY    ? 'R' : '-';
+    char h = attr & DOS_ATTR_HIDDEN    ? 'H' : '-';
+    char a = attr & DOS_ATTR_ARCHIVE   ? 'A' : '-';
+    char d = attr & DOS_ATTR_DIRECTORY ? 'D' : '-';
+
+    int i, index = 0;
+    for (i = 0; i < indent; i++)
+        str[index++] = ' ';
+
+    index += sprintf(&str[index], "%s%c%c%c%c", lang_str(LANG_FSELECT_LABEL_ATTR), r, h, a, d);
 
     return index;
 }
@@ -1706,7 +1721,11 @@ static void fselect_properties()
     index += fselect_format_time_long(indent, &str[index], time);
     str[index++] = '\n';
     if (!selected->isdir)
+    {
         index += fselect_format_size_long(indent, &str[index], st.st_size);
+        str[index++] = '\n';
+    }
+    index += fselect_format_attributes(indent, &str[index], st.st_attrib);
 
     if (calc_hashes)
     {
