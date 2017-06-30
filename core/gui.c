@@ -2047,6 +2047,8 @@ static CMenuItem fselect_hashes_submenu_items[] = {
     MENU_ITEM(0x5c, "  MD5",                                 MENUITEM_BOOL, &conf.fselect_compute_hash_md5,    0),
     MENU_ITEM(0x5c, "  SHA-1",                               MENUITEM_BOOL, &conf.fselect_compute_hash_sha1,   0),
     MENU_ITEM(0x5c, "  SHA-256",                             MENUITEM_BOOL, &conf.fselect_compute_hash_sha256, 0),
+    MENU_ITEM(0x5c, "  SHA-384",                             MENUITEM_BOOL, &conf.fselect_compute_hash_sha384, 0),
+    MENU_ITEM(0x5c, "  SHA-512",                             MENUITEM_BOOL, &conf.fselect_compute_hash_sha512, 0),
     MENU_ITEM(0x60, LANG_MENU_FSELECT_HASH_SIZE_LIMIT,       MENUITEM_INT|MENUITEM_F_UNSIGNED|MENUITEM_F_MINMAX, &conf.fselect_hash_size_limit,  MENU_MINMAX(0, 4000)),
     MENU_ITEM(0x51, LANG_MENU_BACK, MENUITEM_UP, 0, 0),
     { 0 }

@@ -162,10 +162,18 @@ static struct mpopup_item popup_rawop[]= {
         { 0,                    0 },
 };
 
+#define MPOPUP_HASH_MD5    (1 << 0)
+#define MPOPUP_HASH_SHA1   (1 << 1)
+#define MPOPUP_HASH_SHA256 (1 << 2)
+#define MPOPUP_HASH_SHA384 (1 << 3)
+#define MPOPUP_HASH_SHA512 (1 << 4)
+
 static struct mpopup_item popup_hash[] = {
-    { 1, (int)"MD5" },
-    { 2, (int)"SHA-1" },
-    { 3, (int)"SHA-256" },
+    { MPOPUP_HASH_MD5, (int)"MD5" },
+    { MPOPUP_HASH_SHA1, (int)"SHA-1" },
+    { MPOPUP_HASH_SHA256, (int)"SHA-256" },
+    { MPOPUP_HASH_SHA384, (int)"SHA-384" },
+    { MPOPUP_HASH_SHA512, (int)"SHA-512" },
     { 0, 0 }
 };
 
@@ -1344,7 +1352,6 @@ typedef int fselect_hash_done(void*, const unsigned char*);
 
 typedef struct
 {
-    const int* conf;
     const char* name;
     unsigned char sname_start;
     unsigned int size;
@@ -1359,17 +1366,20 @@ fselect_hash_t;
 #include "md5.h"
 #include "sha1.h"
 #include "sha256.h"
+#include "sha384.h"
+#include "sha512.h"
 
 static struct MD5Context md5_ctx;
 static struct SHA1Context sha1_ctx;
 static struct sha256_state sha256_ctx;
+static struct sha384_state sha384_ctx;
+static struct sha512_state sha512_ctx;
 
-#define HASH_TYPE_COUNT 3
+#define HASH_TYPE_COUNT 5
 
 static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
 {
     {
-        &conf.fselect_compute_hash_md5,
         "MD5", 0,
         16,
         &md5_ctx,
@@ -1378,7 +1388,6 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
         (fselect_hash_done*)MD5Final
     },
     {
-        &conf.fselect_compute_hash_sha1,
         "SHA-1", 0,
         20,
         &sha1_ctx,
@@ -1387,13 +1396,28 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
         (fselect_hash_done*)SHA1Final
     },
     {
-        &conf.fselect_compute_hash_sha256,
         "SHA-256", 4,
         32,
         &sha256_ctx,
         (fselect_hash_init*)sha256_init,
         (fselect_hash_process*)sha256_process,
         (fselect_hash_done*)sha256_done
+    },
+    {
+        "SHA-384", 4,
+        48,
+        &sha384_ctx,
+        (fselect_hash_init*)sha384_init,
+        (fselect_hash_process*)sha384_process,
+        (fselect_hash_done*)sha384_done
+    },
+    {
+        "SHA-512", 4,
+        64,
+        &sha512_ctx,
+        (fselect_hash_init*)sha512_init,
+        (fselect_hash_process*)sha512_process,
+        (fselect_hash_done*)sha512_done
     }
 };
 
@@ -1401,7 +1425,7 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
 #define HASH_BUFFER_SIZE 256
 #define HASH_PROGRESS_MIN_SIZE 1048576
 
-static int fselect_calc_hashes(unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE], unsigned long size)
+static int fselect_calc_hashes(int calc_hashes, unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE], unsigned long size)
 {
     static char str[32];
     FILE *f;
@@ -1424,7 +1448,7 @@ static int fselect_calc_hashes(unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SI
     }
 
     for (h = 0; h < HASH_TYPE_COUNT; h++)
-        if (*fselect_hash[h].conf)
+        if (calc_hashes & (1 << h))
             fselect_hash[h].init(fselect_hash[h].ctx);
 
     pos = 0;
@@ -1432,7 +1456,7 @@ static int fselect_calc_hashes(unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SI
     while ((len = fread(ubuf, 1, COPY_BUF_SIZE, f)) > 0)
     {
         for (h = 0; h < HASH_TYPE_COUNT; h++)
-            if (*fselect_hash[h].conf)
+            if (calc_hashes & (1 << h))
                 fselect_hash[h].process(fselect_hash[h].ctx, ubuf, len);
         pos += len;
         if (size >= HASH_PROGRESS_MIN_SIZE)
@@ -1447,7 +1471,7 @@ static int fselect_calc_hashes(unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SI
     }
 
     for (h = 0; h < HASH_TYPE_COUNT; h++)
-        if (*fselect_hash[h].conf)
+        if (calc_hashes & (1 << h))
             fselect_hash[h].done(fselect_hash[h].ctx, buf[h]);
 
     fclose(f);
@@ -1456,14 +1480,14 @@ static int fselect_calc_hashes(unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SI
     return 1;
 }
 
-static void fselect_format_hashes(char* str, unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE])
+static void fselect_format_hashes(char* str, int calc_hashes, unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE])
 {
     int h, i, j, index;
 
     index = 0;
     for (h = 0; h < HASH_TYPE_COUNT; h++)
     {
-        if (*fselect_hash[h].conf)
+        if (calc_hashes & (1 << h))
         {
             for (j = 0; j < 3; j++)
                 str[index++] = fselect_hash[h].name[j + fselect_hash[h].sname_start];
@@ -1648,7 +1672,7 @@ static void fselect_properties()
 {
     static struct stat st;
     static unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE];
-    static char str[256];
+    static char str[512];
     struct tm *time;
     int i, index = 0;
     int calc_hashes;
@@ -1663,9 +1687,16 @@ static void fselect_properties()
     if (!selected->isdir && conf.fselect_compute_hashes
         && (conf.fselect_hash_size_limit == 0 || st.st_size <= ((unsigned long)conf.fselect_hash_size_limit << 20)))
     {
-        for (i = 0; i < HASH_TYPE_COUNT; i++)
-            if (*fselect_hash[i].conf)
-                calc_hashes++;
+        if (conf.fselect_compute_hash_md5)
+            calc_hashes |= MPOPUP_HASH_MD5;
+        if (conf.fselect_compute_hash_sha1)
+            calc_hashes |= MPOPUP_HASH_SHA1;
+        if (conf.fselect_compute_hash_sha256)
+            calc_hashes |= MPOPUP_HASH_SHA256;
+        if (conf.fselect_compute_hash_sha384)
+            calc_hashes |= MPOPUP_HASH_SHA384;
+        if (conf.fselect_compute_hash_sha512)
+            calc_hashes |= MPOPUP_HASH_SHA512;
     }
 
     time = localtime(&st.st_mtime);
@@ -1681,9 +1712,9 @@ static void fselect_properties()
     if (calc_hashes)
     {
         str[index++] = '\n';
-        if (!fselect_calc_hashes(buf, st.st_size))
+        if (!fselect_calc_hashes(calc_hashes, buf, st.st_size))
             return;
-        fselect_format_hashes(&str[index], buf);
+        fselect_format_hashes(&str[index], calc_hashes, buf);
     }
 
     gui_mbox_init((int)selected->name, (int)str, MBOX_BTN_OK, NULL);

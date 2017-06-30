@@ -461,10 +461,12 @@ typedef struct
     int fselect_time_format_clock;
     int fselect_time_format_separator;
     int fselect_compute_hashes;
+    int fselect_hash_size_limit;
     int fselect_compute_hash_md5;
     int fselect_compute_hash_sha1;
     int fselect_compute_hash_sha256;
-    int fselect_hash_size_limit;
+    int fselect_compute_hash_sha384;
+    int fselect_compute_hash_sha512;
 
 } Conf;
 
