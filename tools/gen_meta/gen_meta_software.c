@@ -509,6 +509,7 @@ int main(int argc, char const* argv[])
 	const char* filename = NULL;
 	const char* basepath = NULL;
 	meta_hash_item_t hash_item;
+	char hash_filename[16];
 	char out_path[64];
 	int result;
 	FILE* fout;
@@ -552,7 +553,7 @@ int main(int argc, char const* argv[])
 
 	software.category.name = category;
 
-	hash_item.filename = (char*)filename;
+	hash_item.filename = meta_strtolower(hash_filename, (char*)filename);
 	hash_item.size = 0;
 	software.hash.items = &hash_item;
 	software.hash.count = 1;
