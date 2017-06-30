@@ -162,12 +162,18 @@ static struct mpopup_item popup_rawop[]= {
         { 0,                    0 },
 };
 
+#define MPOPUP_HASH_MD5    (1 << 0)
+#define MPOPUP_HASH_SHA1   (1 << 1)
+#define MPOPUP_HASH_SHA256 (1 << 2)
+#define MPOPUP_HASH_SHA384 (1 << 3)
+#define MPOPUP_HASH_SHA512 (1 << 4)
+
 static struct mpopup_item popup_hash[] = {
-    { 1, (int)"MD5" },
-    { 2, (int)"SHA-1" },
-    { 3, (int)"SHA-256" },
-    { 4, (int)"SHA-384" },
-    { 5, (int)"SHA-512" },
+    { MPOPUP_HASH_MD5, (int)"MD5" },
+    { MPOPUP_HASH_SHA1, (int)"SHA-1" },
+    { MPOPUP_HASH_SHA256, (int)"SHA-256" },
+    { MPOPUP_HASH_SHA384, (int)"SHA-384" },
+    { MPOPUP_HASH_SHA512, (int)"SHA-512" },
     { 0, 0 }
 };
 
