@@ -20,6 +20,7 @@
 #include "gui_read.h"
 
 #include "module_load.h"
+#include "fileutil.h"
 
 /*
     HISTORY:    1.1 - added tbox usage [CHDK 1.1.1 required]
@@ -1473,7 +1474,7 @@ static int fselect_calc_hashes(int calc_hashes, unsigned char buf[HASH_TYPE_COUN
     return 1;
 }
 
-static void fselect_format_hashes(char* str, int calc_hashes, unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE])
+static int fselect_format_hashes(char* str, int calc_hashes, unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE])
 {
     int h, i, j, index;
 
@@ -1510,7 +1511,9 @@ static void fselect_format_hashes(char* str, int calc_hashes, unsigned char buf[
             }
         }
     }
-    str[index - 1] = 0;
+    str[--index] = 0;
+
+    return index;
 }
 
 #define FSELECT_DATE_ORDER_DMY 0
@@ -1652,7 +1655,7 @@ static int fselect_format_attributes(char* str, unsigned int attr)
     return sprintf(str, "%s%c%c%c%c", lang_str(LANG_FSELECT_LABEL_ATTR), r, h, a, d);
 }
 
-static int fselect_get_readme(char* readme)
+static int fselect_get_dir_title(char* title)
 {
     FILE* f;
     int i, len;
@@ -1661,18 +1664,73 @@ static int fselect_get_readme(char* readme)
     if (!(f = fopen(selected_file, "r")))
         return 0;
 
-    i = fread(readme, 1, MBOX_TEXT_WIDTH, f);
-    readme[i] = 0;
+    i = fread(title, 1, MBOX_TEXT_WIDTH, f);
+    title[i] = 0;
     fclose(f);
 
-    for (i = 0, len = 0; readme[i] && readme[i] != '\n'; i++)
-        if (readme[i] != '\r')
+    for (i = 0, len = 0; title[i] && title[i] != '\n'; i++)
+        if (title[i] != '\r')
             len++;
 
     return len;
 }
 
-static int fselect_format_readme(char* str, const char* readme, int len)
+// Adapted from uedit
+static const char* skip_whitespace(const char* p)  { while (*p == ' ' || *p == '\t') p++; return p; }
+const char* skip_toeol(const char* p)              { while (*p && *p != '\r' && *p != '\n') p++; return p; }
+static const char* skip_eol(const char *p)         { p = skip_toeol(p); if (*p == '\r') p++; if (*p == '\n') p++; return p; }
+
+static int fselect_get_script_title(char* title)
+{
+    char* buf;
+    if (!(buf = load_file(selected_file, 0, 1)))
+        return 0;
+
+    // Build title
+    const char *ptr = buf;
+    int i = 0;
+    while (ptr[0])
+    {
+        ptr = skip_whitespace(ptr);
+        if (ptr[0] == '@')
+        {
+            if (strncmp("@title", ptr, 6) == 0)
+            {
+                ptr = ptr + 6;
+                ptr = skip_whitespace(ptr);
+                while (i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
+                {
+                    title[i] = ptr[i];
+                    ++i;
+                }
+                title[i] = 0;
+                break;
+            }
+        }
+        ptr = skip_eol(ptr);
+    }
+
+    free(buf);
+
+    return i;
+}
+
+static int fselect_get_title(char* title)
+{
+    int len;
+    if (selected->isdir)
+        return fselect_get_dir_title(title);
+
+    sprintf(selected_file, "%s/%s", items.dir, selected->name);
+
+    const char *ext = strrchr(selected->name, '.');
+    if (chk_ext(ext, "lua") || chk_ext(ext, "bas"))
+        return fselect_get_script_title(title);
+
+    return 0;
+}
+
+static int fselect_format_title(char* str, const char* title, int len)
 {
     int index = 0;
     int i;
@@ -1681,13 +1739,18 @@ static int fselect_format_readme(char* str, const char* readme, int len)
         return index;
 
     str[index++] = '\n';
-    str[index++] = '\n';
 
-    for (i = 0; readme[i] && readme[i] != '\n'; i++)
-        if (readme[i] != '\r')
-            str[index++] = readme[i];
+    if (selected->isdir || !conf.fselect_compute_hashes
+        || fselect_hash[conf.fselect_compute_hashes - 1].size <= (MBOX_TEXT_WIDTH - 4) / 2)
+    {
+        str[index++] = '\n';
+    }
 
-    str[index++] = '\0';
+    for (i = 0; title[i] && title[i] != '\n'; i++)
+        if (title[i] != '\r')
+            str[index++] = title[i];
+
+    str[index] = '\0';
 
     return index;
 }
@@ -1697,8 +1760,8 @@ static void fselect_properties()
     static struct stat st;
     static unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE];
     static char str[256];
-    static char readme[40];
-    int readme_len;
+    static char title[40];
+    int title_len = 0;
     struct tm *time;
     int i, index = 0;
     int calc_hashes;
@@ -1715,9 +1778,7 @@ static void fselect_properties()
         calc_hashes = 1 << (conf.fselect_compute_hashes - 1);
     }
 
-    readme_len = 0;
-    if (selected->isdir)
-        readme_len = fselect_get_readme(readme);
+    title_len = fselect_get_title(title);
 
     time = localtime(&st.st_mtime);
     
@@ -1731,19 +1792,18 @@ static void fselect_properties()
         str[index++] = '\n';
     }
     index += fselect_format_attributes(&str[index], st.st_attrib);
+    index += fselect_format_title(&str[index], title, title_len);
 
     if (calc_hashes)
     {
         if (!fselect_calc_hashes(calc_hashes, buf, st.st_size))
             return;
         str[index++] = '\n';
-        if (fselect_hash[conf.fselect_compute_hashes - 1].size <= 48)
+        if (fselect_hash[conf.fselect_compute_hashes - 1].size <= (MBOX_TEXT_WIDTH - 4)
+            || (!title_len && fselect_hash[conf.fselect_compute_hashes - 1].size <= (MBOX_TEXT_WIDTH - 4) * 3 / 2))
             str[index++] = '\n';
         fselect_format_hashes(&str[index], calc_hashes, buf);
     }
-
-    if (selected->isdir)
-        index += fselect_format_readme(&str[index], readme, readme_len);
 
     gui_mbox_init((int)selected->name, (int)str, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
 }
