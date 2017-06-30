@@ -23,6 +23,7 @@ typedef struct
 	const char* name;
 	const char* version;
 	const char* versionPrefix;
+	const char* versionSuffix;
 	const char* created;
 	const char* language;
 }
@@ -33,6 +34,7 @@ static void meta_product_init(meta_product_t* product)
 	product->name = NULL;
 	product->version = NULL;
 	product->versionPrefix = NULL;
+	product->versionSuffix = NULL;
 	product->created = NULL;
 	product->language = NULL;
 }
@@ -81,6 +83,12 @@ static int meta_product_write(const meta_product_t* product, JSON* json)
 	if (product->versionPrefix)
 	{
 		meta_prop_write_str("versionPrefix", product->versionPrefix, json);
+		json_write_object_array_sep(json);
+	}
+
+	if (product->versionSuffix)
+	{
+		meta_prop_write_str("versionSuffix", product->versionSuffix, json);
 		json_write_object_array_sep(json);
 	}
 
@@ -418,6 +426,7 @@ static int usage()
 	printf("\t--product-name            Product name\n");
 	printf("\t--product-version         Product version\n");
 	printf("\t--product-version-prefix  Product version prefix (optional)\n");
+	printf("\t--product-version-suffix  Product version suffix (optional)\n");
 	printf("\t--product-language        Product language\n");
 	printf("\t--product-created         Product creation date\n");
 	printf("\t--camera-platform         Camera platform\n");
@@ -456,6 +465,7 @@ static int parse_args(int argc, char const* argv[], meta_software_t* software, c
 		if (!cli_flag_str("--product-name", argc, argv, &i, &software->product.name)
 			&& !cli_flag_str("--product-version", argc, argv, &i, &software->product.version)
 			&& !cli_flag_str("--product-version-prefix", argc, argv, &i, &software->product.versionPrefix)
+			&& !cli_flag_str("--product-version-suffix", argc, argv, &i, &software->product.versionSuffix)
 			&& !cli_flag_str("--product-language", argc, argv, &i, &software->product.language)
 			&& !cli_flag_str("--product-created", argc, argv, &i, &software->product.created)
 			&& !cli_flag_str("--camera-platform", argc, argv, &i, &software->camera.platform)
