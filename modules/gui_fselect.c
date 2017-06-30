@@ -1787,9 +1787,11 @@ static void fselect_properties()
 
     if (calc_hashes)
     {
-        str[index++] = '\n';
         if (!fselect_calc_hashes(calc_hashes, buf, st.st_size))
             return;
+        str[index++] = '\n';
+        if (fselect_hash[conf.fselect_compute_hashes - 1].size <= 48)
+            str[index++] = '\n';
         fselect_format_hashes(&str[index], calc_hashes, buf);
     }
 
