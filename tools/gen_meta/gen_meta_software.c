@@ -23,8 +23,8 @@ typedef struct
 	const char* name;
 	const char* version;
 	const char* versionPrefix;
-	const char* language;
 	const char* created;
+	const char* language;
 }
 meta_product_t;
 
@@ -33,8 +33,8 @@ static void meta_product_init(meta_product_t* product)
 	product->name = NULL;
 	product->version = NULL;
 	product->versionPrefix = NULL;
-	product->language = NULL;
 	product->created = NULL;
+	product->language = NULL;
 }
 
 static int meta_software_category_write(const meta_category_t* category, JSON* json)
@@ -78,13 +78,9 @@ static int meta_product_write(const meta_product_t* product, JSON* json)
 		json_write_object_array_sep(json);
 	}
 
-	if (!meta_prop_write_str("language", product->language, json))
+	if (product->versionPrefix)
 	{
-		fprintf(stderr, "Missing product language\n");
-		result = -1;
-	}
-	else
-	{
+		meta_prop_write_str("versionPrefix", product->versionPrefix, json);
 		json_write_object_array_sep(json);
 	}
 
@@ -93,11 +89,15 @@ static int meta_product_write(const meta_product_t* product, JSON* json)
 		fprintf(stderr, "Missing product creation date\n");
 		result = -1;
 	}
-
-	if (product->versionPrefix)
+	else
 	{
 		json_write_object_array_sep(json);
-		meta_prop_write_str("versionPrefix", product->versionPrefix, json);
+	}
+
+	if (!meta_prop_write_str("language", product->language, json))
+	{
+		fprintf(stderr, "Missing product language\n");
+		result = -1;
 	}
 
 	json_write_object_end(json);
