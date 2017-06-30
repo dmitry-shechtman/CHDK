@@ -16,7 +16,7 @@
 #ifndef SHA1_I_H
 #define SHA1_I_H
 
-#include "eyefi.h"
+#include "crypto.h"
 
 struct SHA1Context {
     u32 state[5];

@@ -12,10 +12,6 @@
 
 #include <string.h>
 
-#ifndef os_memcpy
-#define os_memcpy(d, s, n) memcpy((d), (s), (n))
-#endif
-
 /* ===== start - public domain SHA384 implementation ===== */
 
 /* This is based on SHA384 implementation in LibTomCrypt that was released into

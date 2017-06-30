@@ -71,7 +71,7 @@ $O_osd_le.flt: $Ogui_osd_edit.o
 $Ofselect.flt: $Ogui_fselect.o $Onothumb.o $Osha256.o $Osha384.o $Osha512.o $Omd5.o $Osha1.o
 $Ouseredit.flt: $Ouser_menu_edit.o
 $Ocpuinfo.flt: $Ocpuinfo.o
-$Oeyefi.flt: $Oeyefi.o $Omd5.o $Osha1.o
+$Oeyefi.flt: $Oeyefi.o $Osha1.o $Opbkdf2_sha1.o
 
 $Oubasic.flt: $Oubasic.o $Oscript_key_funcs.o $(lubasic)/$Olibubasic.a
 $Olua.flt: $Oluascript.o $Oscript_key_funcs.o $Oscript_shoot_hook.o $Ocordic_math.o $Odbg_dump.o $Orawhookops.o $(llua)/$Oliblua.a

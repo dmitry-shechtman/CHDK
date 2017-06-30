@@ -16,13 +16,19 @@
 #ifndef MD5_I_H
 #define MD5_I_H
 
-#include "eyefi.h"
+#include <stddef.h>
+
+#include "crypto.h"
 
 struct MD5Context {
 	u32 buf[4];
 	u32 bits[2];
 	u8 in[64];
 };
+
+#define MD5_MAC_LEN 16
+
+void md5_vector(size_t num_elem, const u8 *addr[], const size_t *len, u8 *mac);
 
 typedef struct MD5Context MD5_CTX;
 

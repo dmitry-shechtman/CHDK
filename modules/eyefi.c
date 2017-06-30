@@ -12,7 +12,7 @@
 #include "gui_tbox.h"
 #include "gui_mpopup.h"
 #include "gui_menu.h"
-#include "eyefi.h"
+#include "pbkdf2_sha1.h"
 
 //-------------------------------------------------------------------
 
