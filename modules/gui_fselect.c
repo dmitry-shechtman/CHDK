@@ -168,15 +168,6 @@ static struct mpopup_item popup_rawop[]= {
 #define MPOPUP_HASH_SHA384 (1 << 3)
 #define MPOPUP_HASH_SHA512 (1 << 4)
 
-static struct mpopup_item popup_hash[] = {
-    { MPOPUP_HASH_MD5, (int)"MD5" },
-    { MPOPUP_HASH_SHA1, (int)"SHA-1" },
-    { MPOPUP_HASH_SHA256, (int)"SHA-256" },
-    { MPOPUP_HASH_SHA384, (int)"SHA-384" },
-    { MPOPUP_HASH_SHA512, (int)"SHA-512" },
-    { 0, 0 }
-};
-
 //-------------------------------------------------------------------
 // List helper functions
 
