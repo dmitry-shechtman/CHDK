@@ -2042,6 +2042,8 @@ static const char* gui_fselect_time_format_separator(int change, int arg)
     return time_format_separators[conf.fselect_time_format_separator];
 }
 
+#if FSELECT_MULTI_HASHES
+
 static CMenuItem fselect_hashes_submenu_items[] = {
     MENU_ITEM(0x5c, LANG_MENU_FSELECT_COMPUTE_HASHES,        MENUITEM_BOOL, &conf.fselect_compute_hashes,      0),
     MENU_ITEM(0x5c, "  MD5",                                 MENUITEM_BOOL, &conf.fselect_compute_hash_md5,    0),
@@ -2056,17 +2058,28 @@ static CMenuItem fselect_hashes_submenu_items[] = {
 
 static CMenu fselect_hashes_submenu = { 0x28, LANG_MENU_FSELECT_HASHES, fselect_hashes_submenu_items };
 
-static CMenuItem fselect_submenu_items[] = {
-    MENU_ITEM(0x5c, LANG_MENU_OSD_SHOW_HIDDENFILES,          MENUITEM_BOOL,    &conf.show_hiddenfiles,            0),
-#if defined(CAM_DRYOS)
-    MENU_ITEM(0x5c, LANG_MENU_DISABLE_LFN_SUPPORT,           MENUITEM_BOOL,    &conf.disable_lfn_parser_ui,       0),
+#else
+
+static const char* gui_fselect_hashes[] = { "None", "MD5", "SHA-1", "SHA-256", "SHA-384", "SHA-512" };
+
 #endif
-    MENU_ITEM(0x36, LANG_MENU_FSELECT_DATE_FORMAT_ORDER,     MENUITEM_ENUM,    gui_fselect_date_format_order,     0),
-    MENU_ITEM(0x36, LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR, MENUITEM_ENUM,    gui_fselect_date_format_separator, 0),
-    MENU_ITEM(0x34, LANG_MENU_FSELECT_TIME_FORMAT_CLOCK,     MENUITEM_ENUM,    gui_fselect_time_format_clock,     0),
-    MENU_ITEM(0x34, LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR, MENUITEM_ENUM,    gui_fselect_time_format_separator, 0),
-    MENU_ITEM(0x28, LANG_MENU_FSELECT_HASHES,                MENUITEM_SUBMENU, &fselect_hashes_submenu,           0),
-    MENU_ITEM(0x51, LANG_MENU_BACK, MENUITEM_UP, 0, 0),
+
+static CMenuItem fselect_submenu_items[] = {
+    MENU_ITEM (0x5c, LANG_MENU_OSD_SHOW_HIDDENFILES,          MENUITEM_BOOL,                &conf.show_hiddenfiles,            0),
+#if defined(CAM_DRYOS)
+    MENU_ITEM (0x5c, LANG_MENU_DISABLE_LFN_SUPPORT,           MENUITEM_BOOL,                &conf.disable_lfn_parser_ui,       0),
+#endif
+    MENU_ITEM (0x36, LANG_MENU_FSELECT_DATE_FORMAT_ORDER,     MENUITEM_ENUM,                gui_fselect_date_format_order,     0),
+    MENU_ITEM (0x36, LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR, MENUITEM_ENUM,                gui_fselect_date_format_separator, 0),
+    MENU_ITEM (0x34, LANG_MENU_FSELECT_TIME_FORMAT_CLOCK,     MENUITEM_ENUM,                gui_fselect_time_format_clock,     0),
+    MENU_ITEM (0x34, LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR, MENUITEM_ENUM,                gui_fselect_time_format_separator, 0),
+#if FSELECT_MULTI_HASHES
+    MENU_ITEM (0x28, LANG_MENU_FSELECT_HASHES,                MENUITEM_SUBMENU,             &fselect_hashes_submenu,           0),
+#else
+    MENU_ENUM2(0x5f, LANG_MENU_FSELECT_COMPUTE_HASHES,        &conf.fselect_compute_hashes, gui_fselect_hashes),
+    MENU_ITEM (0x60, LANG_MENU_FSELECT_HASH_SIZE_LIMIT,       MENUITEM_INT|MENUITEM_F_UNSIGNED|MENUITEM_F_MINMAX, &conf.fselect_hash_size_limit,  MENU_MINMAX(0, 4000)),
+#endif
+    MENU_ITEM (0x51, LANG_MENU_BACK, MENUITEM_UP, 0, 0),
     {0}
 };
 

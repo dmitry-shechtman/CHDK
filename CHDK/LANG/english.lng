@@ -813,5 +813,5 @@
 687 "Date separator"
 688 "Time separator"
 689 "Hashes"
-690 "Compute hashes"
-691 "Max file size (MB)"
+690 "Hash in Properties"
+691 "  Max file size (MB)"

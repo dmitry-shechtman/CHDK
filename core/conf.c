@@ -502,11 +502,13 @@ static ConfInfo conf_info[] = {
     CONF_INFO(263, conf.fselect_time_format_separator,          CONF_DEF_VALUE, i:0),
     CONF_INFO(264, conf.fselect_compute_hashes,                 CONF_DEF_VALUE, i:0),
     CONF_INFO(265, conf.fselect_hash_size_limit,                CONF_DEF_VALUE, i:0),
+#if FSELECT_MULTI_HASHES
     CONF_INFO(266, conf.fselect_compute_hash_md5,               CONF_DEF_VALUE, i:0),
     CONF_INFO(267, conf.fselect_compute_hash_sha1,              CONF_DEF_VALUE, i:0),
     CONF_INFO(268, conf.fselect_compute_hash_sha256,            CONF_DEF_VALUE, i:0),
     CONF_INFO(269, conf.fselect_compute_hash_sha384,            CONF_DEF_VALUE, i:0),
     CONF_INFO(270, conf.fselect_compute_hash_sha512,            CONF_DEF_VALUE, i:0),
+#endif
 
     CONF_INFO(999, conf.script_allow_lua_native_calls,          CONF_DEF_VALUE, i:0),
 
