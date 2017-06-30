@@ -143,7 +143,7 @@ static struct mpopup_item popup[]= {
         { MPOPUP_EDITOR,        (int)"Edit" },
         { MPOPUP_CHDK_REPLACE,  (int)"Set this CHDK" },
         { MPOPUP_RAWOPS,        (int)"Raw ops ->" },
-        { MPOPUP_PROPERTIES,    (int)LANG_POPUP_PROPERTIES },
+        { MPOPUP_PROPERTIES,    (int)LANG_FSELECT_LABEL_PROPERTIES },
         { 0,                    0 },
 };
 
@@ -1436,14 +1436,14 @@ static int fselect_calc_hashes(int calc_hashes, unsigned char buf[HASH_TYPE_COUN
 
     if (!(f = fopen(selected_file, "rb")))
     {
-        gui_mbox_init((int)"Properties", LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        gui_mbox_init(LANG_FSELECT_LABEL_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
 
     if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
     {
         fclose(f);
-        gui_mbox_init((int)"Properties", LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        gui_mbox_init(LANG_FSELECT_LABEL_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
     }
 

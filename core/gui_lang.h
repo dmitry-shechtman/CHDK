@@ -799,7 +799,7 @@
 #define LANG_FSELECT_LABEL_TIME                 681
 #define LANG_FSELECT_LABEL_SIZE                 682
 #define LANG_FSELECT_LABEL_ATTR                 683
-#define LANG_POPUP_PROPERTIES                   684
+#define LANG_FSELECT_LABEL_PROPERTIES           684
 #define LANG_FSELECT_FORMAT_PROGRESS            685
 #define LANG_MENU_FILE_BROWSER                  686
 #define LANG_MENU_FSELECT_DATE_FORMAT_ORDER     687
