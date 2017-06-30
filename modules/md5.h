@@ -1,5 +1,5 @@
 /*
- * MD5 hash implementation and interface functions
+ * MD5 internal definitions
  * Copyright (c) 2003-2005, Jouni Malinen <j@w1.fi>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -10,7 +10,7 @@
  * license.
  *
  * See README and COPYING for more details.
-  * modified for CHDK by buttim@hotmail.com
+ * modified for CHDK by buttim@hotmail.com
  */
 
 #ifndef MD5_I_H
