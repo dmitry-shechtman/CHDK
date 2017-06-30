@@ -2008,40 +2008,6 @@ static CMenu menu_settings_submenu = {0x28,LANG_MENU_MENU_SETTINGS, menu_setting
 
 //-------------------------------------------------------------------
 
-static const char* gui_fselect_date_format_order(int change, int arg)
-{
-    static const char* date_format_orders[] = { "DMY", "MDY", "YMD" };
-
-    gui_enum_value_change(&conf.fselect_date_format_order, change, sizeof(date_format_orders) / sizeof(date_format_orders[0]));
-
-    return date_format_orders[conf.fselect_date_format_order];
-}
-
-static const char* gui_fselect_date_format_separator(int change, int arg)
-{
-    static const char* date_format_separators[] = { ".", "/", "-" };
-
-    gui_enum_value_change(&conf.fselect_date_format_separator, change, sizeof(date_format_separators) / sizeof(date_format_separators[0]));
-
-    return date_format_separators[conf.fselect_date_format_separator];
-}
-
-static const char* gui_fselect_time_format_clock(int change, int arg)
-{
-    gui_enum_value_change(&conf.fselect_time_format_clock, change, sizeof(gui_clock_format_modes) / sizeof(gui_clock_format_modes[0]));
-
-    return gui_clock_format_modes[conf.fselect_time_format_clock];
-}
-
-static const char* gui_fselect_time_format_separator(int change, int arg)
-{
-    static const char* time_format_separators[] = { ":", "." };
-
-    gui_enum_value_change(&conf.fselect_time_format_separator, change, sizeof(time_format_separators) / sizeof(time_format_separators[0]));
-
-    return time_format_separators[conf.fselect_time_format_separator];
-}
-
 #if FSELECT_MULTI_HASHES
 
 static CMenuItem fselect_hashes_submenu_items[] = {
@@ -2060,23 +2026,27 @@ static CMenu fselect_hashes_submenu = { 0x28, LANG_MENU_FSELECT_HASHES, fselect_
 
 #else
 
-static const char* gui_fselect_hashes[] = { "None", "MD5", "SHA-1", "SHA-256", "SHA-384", "SHA-512" };
+static const char* gui_fselect_hashes[]                 = { "None", "MD5", "SHA-1", "SHA-256", "SHA-384", "SHA-512" };
 
 #endif
+
+static const char* gui_fselect_date_format_orders[]     = { "DMY", "MDY", "YMD" };
+static const char* gui_fselect_date_format_separators[] = { ".", "/", "-" };
+static const char* gui_fselect_time_format_separators[] = { ":", "." };
 
 static CMenuItem fselect_submenu_items[] = {
-    MENU_ITEM (0x5c, LANG_MENU_OSD_SHOW_HIDDENFILES,          MENUITEM_BOOL,                &conf.show_hiddenfiles,            0),
+    MENU_ITEM (0x5c, LANG_MENU_OSD_SHOW_HIDDENFILES,          MENUITEM_BOOL,                       &conf.show_hiddenfiles,            0),
 #if defined(CAM_DRYOS)
-    MENU_ITEM (0x5c, LANG_MENU_DISABLE_LFN_SUPPORT,           MENUITEM_BOOL,                &conf.disable_lfn_parser_ui,       0),
+    MENU_ITEM (0x5c, LANG_MENU_DISABLE_LFN_SUPPORT,           MENUITEM_BOOL,                       &conf.disable_lfn_parser_ui,       0),
 #endif
-    MENU_ITEM (0x36, LANG_MENU_FSELECT_DATE_FORMAT_ORDER,     MENUITEM_ENUM,                gui_fselect_date_format_order,     0),
-    MENU_ITEM (0x36, LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR, MENUITEM_ENUM,                gui_fselect_date_format_separator, 0),
-    MENU_ITEM (0x34, LANG_MENU_FSELECT_TIME_FORMAT_CLOCK,     MENUITEM_ENUM,                gui_fselect_time_format_clock,     0),
-    MENU_ITEM (0x34, LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR, MENUITEM_ENUM,                gui_fselect_time_format_separator, 0),
+    MENU_ENUM2(0x36, LANG_MENU_FSELECT_DATE_FORMAT_ORDER,     &conf.fselect_date_format_order,     gui_fselect_date_format_orders),
+    MENU_ENUM2(0x36, LANG_MENU_FSELECT_DATE_FORMAT_SEPARATOR, &conf.fselect_date_format_separator, gui_fselect_date_format_separators),
+    MENU_ENUM2(0x34, LANG_MENU_FSELECT_TIME_FORMAT_CLOCK,     &conf.fselect_time_format_clock,     gui_clock_format_modes),
+    MENU_ENUM2(0x34, LANG_MENU_FSELECT_TIME_FORMAT_SEPARATOR, &conf.fselect_time_format_separator, gui_fselect_time_format_separators),
 #if FSELECT_MULTI_HASHES
-    MENU_ITEM (0x28, LANG_MENU_FSELECT_HASHES,                MENUITEM_SUBMENU,             &fselect_hashes_submenu,           0),
+    MENU_ITEM (0x28, LANG_MENU_FSELECT_HASHES,                MENUITEM_SUBMENU,                    &fselect_hashes_submenu,           0),
 #else
-    MENU_ENUM2(0x5f, LANG_MENU_FSELECT_COMPUTE_HASHES,        &conf.fselect_compute_hashes, gui_fselect_hashes),
+    MENU_ENUM2(0x5f, LANG_MENU_FSELECT_COMPUTE_HASHES,        &conf.fselect_compute_hashes,        gui_fselect_hashes),
     MENU_ITEM (0x60, LANG_MENU_FSELECT_HASH_SIZE_LIMIT,       MENUITEM_INT|MENUITEM_F_UNSIGNED|MENUITEM_F_MINMAX, &conf.fselect_hash_size_limit,  MENU_MINMAX(0, 4000)),
 #endif
     MENU_ITEM (0x51, LANG_MENU_BACK, MENUITEM_UP, 0, 0),
