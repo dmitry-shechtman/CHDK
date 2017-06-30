@@ -1566,9 +1566,8 @@ static int fselect_format_date_long(char* str, struct tm *time)
     int month = time->tm_mon + 1;
     int year = (time->tm_year < 100) ? time->tm_year + 2000 : time->tm_year + 1900;
 
-    int index = 0;
+    int index = sprintf(str, lang_str(LANG_FSELECT_LABEL_DATE));
 
-    index += sprintf(&str[index], lang_str(LANG_FSELECT_LABEL_DATE));
     index += fselect_format_date(&str[index], day, month, year);
 
     return index;
@@ -1595,9 +1594,7 @@ static int fselect_format_time_long(char* str, struct tm *time)
         ? long_time_formats[i]
         : long_time_formats[0];
 
-    int index = 0;
-
-    index += sprintf(&str[index], lang_str(LANG_FSELECT_LABEL_TIME));
+    int index = sprintf(str, lang_str(LANG_FSELECT_LABEL_TIME));
 
     switch (conf.fselect_time_format_clock)
     {
@@ -1683,29 +1680,26 @@ static const char* skip_eol(const char *p)         { p = skip_toeol(p); if (*p =
 static int fselect_get_script_title(char* title)
 {
     char* buf;
+    const char *ptr;
+    int i;
     if (!(buf = load_file(selected_file, 0, 1)))
         return 0;
 
-    // Build title
-    const char *ptr = buf;
-    int i = 0;
-    while (ptr[0])
+    ptr = buf;
+    i = 0;
+    while (*ptr)
     {
         ptr = skip_whitespace(ptr);
-        if (ptr[0] == '@')
+        if (*ptr == '@' && strncmp("title", &ptr[1], 5) == 0)
         {
-            if (strncmp("@title", ptr, 6) == 0)
+            ptr = skip_whitespace(ptr + 6);
+            while (i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
             {
-                ptr = ptr + 6;
-                ptr = skip_whitespace(ptr);
-                while (i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
-                {
-                    title[i] = ptr[i];
-                    ++i;
-                }
-                title[i] = 0;
-                break;
+                title[i] = ptr[i];
+                ++i;
             }
+            title[i] = 0;
+            break;
         }
         ptr = skip_eol(ptr);
     }
