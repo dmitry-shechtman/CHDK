@@ -1425,6 +1425,7 @@ static void fselect_calc_hash(FILE* f, unsigned char* ubuf, int len, fselect_has
 }
 
 #define MBOX_TEXT_WIDTH 36
+#define MBOX_HASH_WIDTH (MBOX_TEXT_WIDTH - 4)
 
 static int fselect_format_hash(char* str, fselect_hash_t* hash, unsigned char* hbuf)
 {
@@ -1434,7 +1435,7 @@ static int fselect_format_hash(char* str, fselect_hash_t* hash, unsigned char* h
         return 0;
 
     index = 0;
-    for (j = 0; j < 3; j++)
+    for (j = 0; j < MBOX_TEXT_WIDTH - MBOX_HASH_WIDTH - 1; j++)
         str[index++] = hash->name[j + hash->sname_start];
     str[index++] = ' ';
     j++;
@@ -1447,7 +1448,7 @@ static int fselect_format_hash(char* str, fselect_hash_t* hash, unsigned char* h
         {
             str[index++] = '\n';
             if (i < hash->size - 1)
-                for (j = 0; j < 4; j++)
+                for (j = 0; j < MBOX_TEXT_WIDTH - MBOX_HASH_WIDTH; j++)
                     str[index++] = ' ';
             else
                 j = 0;
@@ -1887,7 +1888,7 @@ static void fselect_properties()
         && (conf.fselect_hash_size_limit == 0 || st.st_size <= ((unsigned long)conf.fselect_hash_size_limit << 20)))
     {
         hash = &fselect_hash[conf.fselect_compute_hashes - 1];
-        hash_height = (hash->size * 2 + MBOX_TEXT_WIDTH - 5) / (MBOX_TEXT_WIDTH - 4);
+        hash_height = (hash->size * 2 + MBOX_HASH_WIDTH - 1) / MBOX_HASH_WIDTH;
     }
 
     title_len = fselect_get_title_and_hash(title, hash, hbuf);
