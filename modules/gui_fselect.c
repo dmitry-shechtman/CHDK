@@ -1413,7 +1413,57 @@ static fselect_hash_t fselect_hash[HASH_TYPE_COUNT] =
     }
 };
 
+static void fselect_calc_hash(FILE* f, unsigned char* ubuf, int len, fselect_hash_t* hash, unsigned char* hbuf)
+{
+    if (!hash)
+        return;
+    hash->init(hash->ctx);
+    hash->process(hash->ctx, ubuf, len);
+    while ((len = fread(ubuf, 1, COPY_BUF_SIZE, f)))
+        hash->process(hash->ctx, ubuf, len);
+    hash->done(hash->ctx, hbuf);
+}
+
 #define MBOX_TEXT_WIDTH 36
+
+static int fselect_format_hash(char* str, fselect_hash_t* hash, unsigned char* hbuf)
+{
+    int i, j, index;
+
+    if (!hash)
+        return 0;
+
+    index = 0;
+    for (j = 0; j < 3; j++)
+        str[index++] = hash->name[j + hash->sname_start];
+    str[index++] = ' ';
+    j++;
+
+    for (i = 0; i < hash->size; i++)
+    {
+        str[index++] = fselect_hash_nibble(hbuf[i] / 16, hash->upper);
+        str[index++] = fselect_hash_nibble(hbuf[i] % 16, hash->upper);
+        if ((j += 2) == MBOX_TEXT_WIDTH)
+        {
+            str[index++] = '\n';
+            if (i < hash->size - 1)
+                for (j = 0; j < 4; j++)
+                    str[index++] = ' ';
+            else
+                j = 0;
+        }
+    }
+
+    if (str[index - 1] == '\n')
+        --index;
+    else
+        while (j++ < MBOX_TEXT_WIDTH)
+            str[index++] = ' ';
+
+    str[index] = 0;
+    return index;
+}
+
 #define MIN_TEXT_WIDTH 20
 #define HASH_BUFFER_SIZE 256
 #define HASH_PROGRESS_MIN_SIZE 1048576
@@ -1475,43 +1525,18 @@ static int fselect_calc_hashes(int calc_hashes, unsigned char buf[HASH_TYPE_COUN
 
 static int fselect_format_hashes(char* str, int calc_hashes, unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE])
 {
-    int h, i, j, index;
+    int h, index = 0;
 
-    index = 0;
     for (h = 0; h < HASH_TYPE_COUNT; h++)
     {
         if (calc_hashes & (1 << h))
         {
-            for (j = 0; j < 3; j++)
-                str[index++] = fselect_hash[h].name[j + fselect_hash[h].sname_start];
-            str[index++] = ' ';
-            j++;
-
-            for (i = 0; i < fselect_hash[h].size; i++)
-            {
-                str[index++] = fselect_hash_nibble(buf[h][i] / 16, fselect_hash[h].upper);
-                str[index++] = fselect_hash_nibble(buf[h][i] % 16, fselect_hash[h].upper);
-                if ((j += 2) == MBOX_TEXT_WIDTH)
-                {
-                    str[index++] = '\n';
-                    if (i < fselect_hash[h].size - 1)
-                        for (j = 0; j < 4; j++)
-                            str[index++] = ' ';
-                    else
-                        j = 0;
-                }
-            }
-
-            if (str[index - 1] != '\n')
-            {
-                while (j++ < MBOX_TEXT_WIDTH)
-                    str[index++] = ' ';
-                str[index++] = '\n';
-            }
+            index += fselect_format_hash(&str[index], &fselect_hash[h], buf[h]);
+            str[index++] = '\n';
         }
     }
-    str[--index] = 0;
 
+    str[--index] = 0;
     return index;
 }
 
@@ -1655,42 +1680,31 @@ static const char* skip_whitespace(const char* p)  { while (*p && (*p == ' ' || 
 const char* skip_toeol(const char* p)              { while (*p && *p != '\r' && *p != '\n') p++; return p; }
 static const char* skip_eol(const char *p)         { p = skip_toeol(p); if (*p == '\r') p++; if (*p == '\n') p++; return p; }
 
-static int fselect_get_first_line(char* title)
+static int fselect_get_first_line_and_hash(char* title, fselect_hash_t* hash, unsigned char* hbuf)
 {
     FILE *f;
     const char *ptr;
     int len;
     int i;
 
-    if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
-    {
-        gui_mbox_init(LANG_POPUP_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
-        return 0;
-    }
-
     if (!(f = fopen(selected_file, "rb")))
-    {
-        gui_mbox_init(LANG_POPUP_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
-    }
 
-    len = fread(ubuf, 1, COPY_BUF_SIZE, f);
-    fclose(f);
-
-    if (len < COPY_BUF_SIZE)
-        ubuf[len] = 0;
-
-    ptr = (char*)ubuf;
     i = 0;
-
-    skip_whitespace(ptr);
-    while (i < COPY_BUF_SIZE && i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
+    if ((len = fread(ubuf, 1, COPY_BUF_SIZE, f)))
     {
-        title[i] = ptr[i];
-        ++i;
+        ptr = (char*)ubuf;
+        skip_whitespace(ptr);
+        while (i < len && i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
+        {
+            title[i] = ptr[i];
+            ++i;
+        }
+        title[i] = 0;
     }
-    title[i] = 0;
 
+    fselect_calc_hash(f, ubuf, len, hash, hbuf);
+    fclose(f);
     return i;
 }
 
@@ -1699,64 +1713,55 @@ static int fselect_get_dir_title(char* title)
     sprintf(selected_file, "%s/%s/readme.txt", items.dir, selected->name);
     if (stat(selected_file, 0))
         return 0;
-    return fselect_get_first_line(title);
+    return fselect_get_first_line_and_hash(title, 0, 0);
 }
 
 //-----------------------------------------------
 // Adapted from uedit
-static int fselect_get_script_title(char* title)
+static int fselect_get_script_title_and_hash(char* title, fselect_hash_t* hash, unsigned char* hbuf)
 {
     FILE *f;
     const char *ptr;
     int len;
     int i;
 
-    if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
-    {
-        gui_mbox_init(LANG_POPUP_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
-        return 0;
-    }
-
     if (!(f = fopen(selected_file, "rb")))
-    {
-        gui_mbox_init(LANG_POPUP_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
         return 0;
-    }
 
-    len = fread(ubuf, 1, COPY_BUF_SIZE, f);
-    fclose(f);
-
-    if (len < COPY_BUF_SIZE)
-        ubuf[len] = 0;
-
-    ptr = (char*)ubuf;
     i = 0;
-    while (*ptr)
+    if ((len = fread(ubuf, 1, COPY_BUF_SIZE, f)))
     {
-        ptr = skip_whitespace(ptr);
-        if (*ptr == '@' && strncmp("title", &ptr[1], 5) == 0)
+        ptr = (char*)ubuf;
+        while (*ptr)
         {
-            ptr = skip_whitespace(ptr + 6);
-            while (i < COPY_BUF_SIZE && i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
+            ptr = skip_whitespace(ptr);
+            if (*ptr == '@' && strncmp("title", &ptr[1], 5) == 0)
             {
-                title[i] = ptr[i];
-                ++i;
+                ptr = skip_whitespace(ptr + 6);
+                while (i < len && i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
+                {
+                    title[i] = ptr[i];
+                    ++i;
+                }
+                title[i] = 0;
+                break;
             }
-            title[i] = 0;
-            break;
+            ptr = skip_eol(ptr);
         }
-        ptr = skip_eol(ptr);
     }
 
+    fselect_calc_hash(f, ubuf, len, hash, hbuf);
+    fclose(f);
     return i;
 }
 
 //-----------------------------------------------
 // Adapted from module_load
-static void fselect_get_module_info(const char *path, ModuleInfo *mi, char *modName, int modNameLen)
+static void fselect_get_module_info_and_hash(const char *path, ModuleInfo *mi, char *modName, int modNameLen, unsigned char *ubuf, int size, fselect_hash_t* hash, unsigned char *hbuf)
 {
     FILE *f;
-    flat_hdr flat;
+    flat_hdr *flat = (flat_hdr*)ubuf;
+    int len;
 
     memset(mi, 0, sizeof(ModuleInfo));
     if (modName)
@@ -1766,12 +1771,16 @@ static void fselect_get_module_info(const char *path, ModuleInfo *mi, char *modN
         return;
 
     // Read module header only to get size info
-    fread((char*)&flat, 1, sizeof(flat_hdr) , f);
+    if (!(len = fread(ubuf, 1, size, f)))
+        return;
+
+    // Calculate hash from here
+    fselect_calc_hash(f, ubuf, len, hash, hbuf);
 
     // Check version and magic number - make sure it is a CHDK module file
-    if ((flat.rev == FLAT_VERSION) && (flat.magic == FLAT_MAGIC_NUMBER))
+    if ((flat->rev == FLAT_VERSION) && (flat->magic == FLAT_MAGIC_NUMBER))
     {
-        fseek(f, flat._module_info_offset, SEEK_SET);
+        fseek(f, flat->_module_info_offset, SEEK_SET);
         fread(mi, 1, sizeof(ModuleInfo), f);
 
         if ((mi->moduleName >= 0) && modName)
@@ -1786,11 +1795,11 @@ static void fselect_get_module_info(const char *path, ModuleInfo *mi, char *modN
     fclose(f);
 }
 
-static int fselect_get_module_title(char* title)
+static int fselect_get_module_title_and_hash(char* title, fselect_hash_t* hash, unsigned char* hbuf)
 {
     static ModuleInfo mi;
 
-    fselect_get_module_info(selected_file, &mi, title, MBOX_TEXT_WIDTH);
+    fselect_get_module_info_and_hash(selected_file, &mi, title, MBOX_TEXT_WIDTH, ubuf, COPY_BUF_SIZE, hash, hbuf);
 
     if (mi.moduleName < 0)
         return sprintf(title, lang_str(-mi.moduleName));
@@ -1798,22 +1807,35 @@ static int fselect_get_module_title(char* title)
     return strlen(title);
 }
 
-static int fselect_get_title(char* title)
+static int fselect_get_title_and_hash(char* title, fselect_hash_t* hash, unsigned char* hbuf)
 {
+    FILE*f;
     int len;
+
+    if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
+        return 0;
+
     if (selected->isdir)
         return fselect_get_dir_title(title);
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
 
     const char *ext = strrchr(selected->name, '.');
-    if (chk_ext(ext, "lua") || chk_ext(ext, "bas"))
-        return fselect_get_script_title(title);
-    if (chk_ext(ext, "flt"))
-        return fselect_get_module_title(title);
-    if (chk_ext(ext, "txt") || chk_ext(ext, "log") || chk_ext(ext, "csv") || chk_ext(ext, "jsn"))
-        return fselect_get_first_line(title);
 
+    if (chk_ext(ext, "lua") || chk_ext(ext, "bas"))
+        return fselect_get_script_title_and_hash(title, hash, hbuf);
+
+    if (chk_ext(ext, "flt"))
+        return fselect_get_module_title_and_hash(title, hash, hbuf);
+
+    if (chk_ext(ext, "txt") || chk_ext(ext, "log") || chk_ext(ext, "csv") || chk_ext(ext, "jsn"))
+        return fselect_get_first_line_and_hash(title, hash, hbuf);
+
+    if (!(f = fopen(selected_file, "rb")))
+        return 0;
+
+    fselect_calc_hash(f, ubuf, 0, hash, hbuf);
+    fclose(f);
     return 0;
 }
 
@@ -1845,13 +1867,13 @@ static int fselect_format_title(char* str, const char* title, int len, int hash_
 static void fselect_properties()
 {
     static struct stat st;
-    static unsigned char buf[HASH_TYPE_COUNT][HASH_BUFFER_SIZE];
+    static unsigned char hbuf[HASH_BUFFER_SIZE];
     static char str[256];
     static char title[40];
     int title_len = 0;
     struct tm *time;
+    fselect_hash_t *hash;
     int i, index = 0;
-    int calc_hashes;
     int hash_height;
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
@@ -1859,16 +1881,16 @@ static void fselect_properties()
     if (stat(selected_file, &st))
         return;
 
-    calc_hashes = 0;
+    hash = 0;
     hash_height = 0;
     if (!selected->isdir && conf.fselect_compute_hashes
         && (conf.fselect_hash_size_limit == 0 || st.st_size <= ((unsigned long)conf.fselect_hash_size_limit << 20)))
     {
-        calc_hashes = 1 << (conf.fselect_compute_hashes - 1);
-        hash_height = (fselect_hash[conf.fselect_compute_hashes - 1].size * 2 + MBOX_TEXT_WIDTH - 5) / (MBOX_TEXT_WIDTH - 4);
+        hash = &fselect_hash[conf.fselect_compute_hashes - 1];
+        hash_height = (hash->size * 2 + MBOX_TEXT_WIDTH - 5) / (MBOX_TEXT_WIDTH - 4);
     }
 
-    title_len = fselect_get_title(title);
+    title_len = fselect_get_title_and_hash(title, hash, hbuf);
 
     time = localtime(&st.st_mtime);
     
@@ -1884,14 +1906,12 @@ static void fselect_properties()
     index += fselect_format_attributes(&str[index], st.st_attrib);
     index += fselect_format_title(&str[index], title, title_len, hash_height);
 
-    if (calc_hashes)
+    if (hash)
     {
-        if (!fselect_calc_hashes(calc_hashes, buf, st.st_size))
-            return;
         str[index++] = '\n';
         if (hash_height <= 2 || (!title_len && hash_height <= 3))
             str[index++] = '\n';
-        fselect_format_hashes(&str[index], calc_hashes, buf);
+        fselect_format_hash(&str[index], hash, hbuf);
     }
 
     gui_mbox_init((int)selected->name, (int)str, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
