@@ -2124,7 +2124,7 @@ int gui_fselect_kbd_process()
 
                     if (!fselect_on_select)
                     {
-                        if (chk_ext(ext,"txt") || chk_ext(ext,"log") || chk_ext(ext,"csv"))
+                        if (chk_ext(ext,"txt") || chk_ext(ext,"log") || chk_ext(ext,"csv") || chk_ext(ext,"jsn"))
                         {
                             exit_fselect(0);
                             do_exit = 0;
