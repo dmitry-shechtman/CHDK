@@ -1808,18 +1808,18 @@ static int fselect_get_module_title_and_hash(char* title, fselect_hash_t* hash, 
     return strlen(title);
 }
 
-static int fselect_get_title_and_hash(char* title, fselect_hash_t* hash, unsigned char* hbuf)
+static int fselect_get_title_and_hash(char* title, fselect_hash_t* hash, unsigned char* hbuf, unsigned long size)
 {
     FILE*f;
     int len;
+    int pos = 0, progress = 0;
+    static char str[32];
 
     if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
         return 0;
 
     if (selected->isdir)
         return fselect_get_dir_title(title);
-
-    sprintf(selected_file, "%s/%s", items.dir, selected->name);
 
     const char *ext = strrchr(selected->name, '.');
 
@@ -1835,8 +1835,28 @@ static int fselect_get_title_and_hash(char* title, fselect_hash_t* hash, unsigne
     if (!(f = fopen(selected_file, "rb")))
         return 0;
 
-    fselect_calc_hash(f, ubuf, 0, hash, hbuf);
+    hash->init(hash->ctx);
+
+    while ((len = fread(ubuf, 1, COPY_BUF_SIZE, f)) > 0)
+    {
+        hash->process(hash->ctx, ubuf, len);
+        pos += len;
+        if (size >= HASH_PROGRESS_MIN_SIZE)
+        {
+            if (progress == 0 || progress < pos * 100 / size)
+            {
+                progress = pos * 100 / size;
+                sprintf(str, lang_str(LANG_FSELECT_FORMAT_PROGRESS), pos, size, progress);
+                gui_browser_progress_show(str, progress);
+            }
+        }
+    }
+
+    hash->done(hash->ctx, hbuf);
+
     fclose(f);
+
+    finished();
     return 0;
 }
 
@@ -1891,7 +1911,7 @@ static void fselect_properties()
         hash_height = (hash->size * 2 + MBOX_HASH_WIDTH - 1) / MBOX_HASH_WIDTH;
     }
 
-    title_len = fselect_get_title_and_hash(title, hash, hbuf);
+    title_len = fselect_get_title_and_hash(title, hash, hbuf, st.st_size);
 
     time = localtime(&st.st_mtime);
     
