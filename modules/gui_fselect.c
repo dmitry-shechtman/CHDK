@@ -1738,21 +1738,21 @@ static int fselect_get_title(char* title)
     return 0;
 }
 
-static int fselect_format_title(char* str, const char* title, int len)
+static int fselect_format_title(char* str, const char* title, int len, int hash_height)
 {
     int index = 0;
     int i;
 
     if (len == 0)
-        return index;
+        return 0;
+
+    if (hash_height >= 4)
+        return 0;
 
     str[index++] = '\n';
 
-    if (selected->isdir || !conf.fselect_compute_hashes
-        || fselect_hash[conf.fselect_compute_hashes - 1].size <= (MBOX_TEXT_WIDTH - 4) / 2)
-    {
+    if (selected->isdir || hash_height <= 1)
         str[index++] = '\n';
-    }
 
     for (i = 0; title[i] && title[i] != '\n'; i++)
         if (title[i] != '\r')
@@ -1773,6 +1773,7 @@ static void fselect_properties()
     struct tm *time;
     int i, index = 0;
     int calc_hashes;
+    int hash_height;
 
     sprintf(selected_file, "%s/%s", items.dir, selected->name);
 
@@ -1780,10 +1781,12 @@ static void fselect_properties()
         return;
 
     calc_hashes = 0;
+    hash_height = 0;
     if (!selected->isdir && conf.fselect_compute_hashes
         && (conf.fselect_hash_size_limit == 0 || st.st_size <= ((unsigned long)conf.fselect_hash_size_limit << 20)))
     {
         calc_hashes = 1 << (conf.fselect_compute_hashes - 1);
+        hash_height = (fselect_hash[conf.fselect_compute_hashes - 1].size * 2 + MBOX_TEXT_WIDTH - 5) / (MBOX_TEXT_WIDTH - 4);
     }
 
     title_len = fselect_get_title(title);
@@ -1800,15 +1803,14 @@ static void fselect_properties()
         str[index++] = '\n';
     }
     index += fselect_format_attributes(&str[index], st.st_attrib);
-    index += fselect_format_title(&str[index], title, title_len);
+    index += fselect_format_title(&str[index], title, title_len, hash_height);
 
     if (calc_hashes)
     {
         if (!fselect_calc_hashes(calc_hashes, buf, st.st_size))
             return;
         str[index++] = '\n';
-        if (fselect_hash[conf.fselect_compute_hashes - 1].size <= (MBOX_TEXT_WIDTH - 4)
-            || (!title_len && fselect_hash[conf.fselect_compute_hashes - 1].size <= (MBOX_TEXT_WIDTH - 4) * 3 / 2))
+        if (hash_height <= 2 || (!title_len && hash_height <= 3))
             str[index++] = '\n';
         fselect_format_hashes(&str[index], calc_hashes, buf);
     }
