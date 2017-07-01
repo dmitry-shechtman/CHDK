@@ -20,7 +20,6 @@
 #include "gui_read.h"
 
 #include "module_load.h"
-#include "fileutil.h"
 
 /*
     HISTORY:    1.1 - added tbox usage [CHDK 1.1.1 required]
@@ -1673,19 +1672,36 @@ static int fselect_get_dir_title(char* title)
 }
 
 // Adapted from uedit
-static const char* skip_whitespace(const char* p)  { while (*p == ' ' || *p == '\t') p++; return p; }
+static const char* skip_whitespace(const char* p)  { while (*p && (*p == ' ' || *p == '\t')) p++; return p; }
 const char* skip_toeol(const char* p)              { while (*p && *p != '\r' && *p != '\n') p++; return p; }
 static const char* skip_eol(const char *p)         { p = skip_toeol(p); if (*p == '\r') p++; if (*p == '\n') p++; return p; }
 
 static int fselect_get_script_title(char* title)
 {
-    char* buf;
+    FILE *f;
     const char *ptr;
+    int len;
     int i;
-    if (!(buf = load_file(selected_file, 0, 1)))
-        return 0;
 
-    ptr = buf;
+    if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
+    {
+        gui_mbox_init(LANG_POPUP_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        return 0;
+    }
+
+    if (!(f = fopen(selected_file, "rb")))
+    {
+        gui_mbox_init(LANG_POPUP_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        return 0;
+    }
+
+    len = fread(ubuf, 1, COPY_BUF_SIZE, f);
+    fclose(f);
+
+    if (len < COPY_BUF_SIZE)
+        ubuf[len] = 0;
+
+    ptr = (char*)ubuf;
     i = 0;
     while (*ptr)
     {
@@ -1693,7 +1709,7 @@ static int fselect_get_script_title(char* title)
         if (*ptr == '@' && strncmp("title", &ptr[1], 5) == 0)
         {
             ptr = skip_whitespace(ptr + 6);
-            while (i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
+            while (i < COPY_BUF_SIZE && i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
             {
                 title[i] = ptr[i];
                 ++i;
@@ -1703,8 +1719,6 @@ static int fselect_get_script_title(char* title)
         }
         ptr = skip_eol(ptr);
     }
-
-    free(buf);
 
     return i;
 }
