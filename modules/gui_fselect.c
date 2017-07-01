@@ -1651,32 +1651,59 @@ static int fselect_format_attributes(char* str, unsigned int attr)
     return sprintf(str, "%s%c%c%c%c", lang_str(LANG_FSELECT_LABEL_ATTR), r, h, a, d);
 }
 
-static int fselect_get_dir_title(char* title)
-{
-    FILE* f;
-    int i, len;
-
-    sprintf(selected_file, "%s/%s/readme.txt", items.dir, selected->name);
-    if (!(f = fopen(selected_file, "r")))
-        return 0;
-
-    i = fread(title, 1, MBOX_TEXT_WIDTH, f);
-    title[i] = 0;
-    fclose(f);
-
-    for (i = 0, len = 0; title[i] && title[i] != '\n'; i++)
-        if (title[i] != '\r')
-            len++;
-
-    return len;
-}
-
-//-----------------------------------------------
-// Adapted from uedit
 static const char* skip_whitespace(const char* p)  { while (*p && (*p == ' ' || *p == '\t')) p++; return p; }
 const char* skip_toeol(const char* p)              { while (*p && *p != '\r' && *p != '\n') p++; return p; }
 static const char* skip_eol(const char *p)         { p = skip_toeol(p); if (*p == '\r') p++; if (*p == '\n') p++; return p; }
 
+static int fselect_get_first_line(char* title)
+{
+    FILE *f;
+    const char *ptr;
+    int len;
+    int i;
+
+    if (!ubuf && !(ubuf = umalloc(COPY_BUF_SIZE)))
+    {
+        gui_mbox_init(LANG_POPUP_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        return 0;
+    }
+
+    if (!(f = fopen(selected_file, "rb")))
+    {
+        gui_mbox_init(LANG_POPUP_PROPERTIES, LANG_ERROR, MBOX_BTN_OK | MBOX_TEXT_CENTER, NULL);
+        return 0;
+    }
+
+    len = fread(ubuf, 1, COPY_BUF_SIZE, f);
+    fclose(f);
+
+    if (len < COPY_BUF_SIZE)
+        ubuf[len] = 0;
+
+    ptr = (char*)ubuf;
+    i = 0;
+
+    skip_whitespace(ptr);
+    while (i < COPY_BUF_SIZE && i < MBOX_TEXT_WIDTH && ptr[i] && ptr[i] != '\r' && ptr[i] != '\n')
+    {
+        title[i] = ptr[i];
+        ++i;
+    }
+    title[i] = 0;
+
+    return i;
+}
+
+static int fselect_get_dir_title(char* title)
+{
+    sprintf(selected_file, "%s/%s/readme.txt", items.dir, selected->name);
+    if (stat(selected_file, 0))
+        return 0;
+    return fselect_get_first_line(title);
+}
+
+//-----------------------------------------------
+// Adapted from uedit
 static int fselect_get_script_title(char* title)
 {
     FILE *f;
@@ -1784,6 +1811,8 @@ static int fselect_get_title(char* title)
         return fselect_get_script_title(title);
     if (chk_ext(ext, "flt"))
         return fselect_get_module_title(title);
+    if (chk_ext(ext, "txt") || chk_ext(ext, "log") || chk_ext(ext, "csv") || chk_ext(ext, "jsn"))
+        return fselect_get_first_line(title);
 
     return 0;
 }
