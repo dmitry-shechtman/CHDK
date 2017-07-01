@@ -1671,6 +1671,7 @@ static int fselect_get_dir_title(char* title)
     return len;
 }
 
+//-----------------------------------------------
 // Adapted from uedit
 static const char* skip_whitespace(const char* p)  { while (*p && (*p == ' ' || *p == '\t')) p++; return p; }
 const char* skip_toeol(const char* p)              { while (*p && *p != '\r' && *p != '\n') p++; return p; }
@@ -1723,11 +1724,46 @@ static int fselect_get_script_title(char* title)
     return i;
 }
 
+//-----------------------------------------------
+// Adapted from module_load
+static void fselect_get_module_info(const char *path, ModuleInfo *mi, char *modName, int modNameLen)
+{
+    FILE *f;
+    flat_hdr flat;
+
+    memset(mi, 0, sizeof(ModuleInfo));
+    if (modName)
+        modName[0] = 0;
+
+    if (!(f = fopen(path, "rb")))
+        return;
+
+    // Read module header only to get size info
+    fread((char*)&flat, 1, sizeof(flat_hdr) , f);
+
+    // Check version and magic number - make sure it is a CHDK module file
+    if ((flat.rev == FLAT_VERSION) && (flat.magic == FLAT_MAGIC_NUMBER))
+    {
+        fseek(f, flat._module_info_offset, SEEK_SET);
+        fread(mi, 1, sizeof(ModuleInfo), f);
+
+        if ((mi->moduleName >= 0) && modName)
+        {
+            // Load module name string
+            fseek(f, mi->moduleName, SEEK_SET);
+            fread(modName, 1, modNameLen - 1, f);
+            modName[modNameLen - 1] = 0;
+        }
+    }
+
+    fclose(f);
+}
+
 static int fselect_get_module_title(char* title)
 {
     static ModuleInfo mi;
 
-    get_module_info(selected_file, &mi, title, 33);
+    fselect_get_module_info(selected_file, &mi, title, MBOX_TEXT_WIDTH);
 
     if (mi.moduleName < 0)
         return sprintf(title, lang_str(-mi.moduleName));

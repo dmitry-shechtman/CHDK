@@ -16,7 +16,6 @@
             module_set_script_lang
             module_run
             module_preload
-            get_module_info
             &chdk_colors
 
             &script_version
