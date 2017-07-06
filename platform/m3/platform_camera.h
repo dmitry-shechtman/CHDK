@@ -25,8 +25,6 @@
     #define CAM_DISABLE_RAW_IN_HQ_BURST         1 // raw wouldn't make any sense in this mode either
     #define CAM_DISABLE_RAW_IN_HYBRID_AUTO      1 // For cameras that lock up while saving raw in "Hybrid Auto" mode
     #define CAM_DISABLE_RAW_IN_SPORTS           1 // sports mode seems to use a no-yet-found code path and corrupts JPEG/DNG
-
-    #define DNG_VERT_RLE_BADPIXELS              1
     #define CAM_AV_OVERRIDE_IRIS_FIX            1
     #undef CAM_HAS_ND_FILTER                             // Camera does not have built-in ND filter
     #undef  CAM_KEY_PRESS_DELAY
@@ -92,7 +90,6 @@
     #define DRAW_ON_ACTIVE_BITMAP_BUFFER_ONLY   1           // Draw pixels on active bitmap buffer only.
     //#undef  CAM_USES_ASPECT_CORRECTION
     //#define CAM_USES_ASPECT_CORRECTION          1
-    #define DRAW_ON_YUV_OVERLAY                 1
     #undef  CAM_BITMAP_WIDTH
     #undef  CAM_BITMAP_HEIGHT
     #undef  CAM_SCREEN_WIDTH
@@ -103,14 +100,9 @@
     #define CAM_SCREEN_HEIGHT                   480 // Height of bitmap screen in CHDK co-ordinates (always 240 on all cameras so far)
     #define CAM_SUPPORT_BITMAP_RES_CHANGE       1
     
-    #undef  CAM_VIEWPORT_PIXEL_FORMAT
-    #define CAM_VIEWPORT_PIXEL_FORMAT           2   // mandatory on DIGIC6, pixel format is YUY2 (uyvy)
 
     #undef  EDGE_HMARGIN
     #define EDGE_HMARGIN                        16
-
-    #define CAM_STARTUP_CRASH_FILE_OPEN_FIX     1           // enable workaround for camera crash at startup when opening the conf / font files
-                                                            // see http://chdk.setepontos.com/index.php?topic=6179.0
 
     #define CAM_HAS_FILEWRITETASK_HOOK          1
     //#define CAM_FILEWRITETASK_SEEKS             1
@@ -128,8 +120,6 @@
     #define CAMERA_MAX_DIST                     1550000     // Override max subject distance; manually checked up to 1550388, with MF max 1369863 (double step)
 
     //#define CAM_HAS_GPS                         1
-
-    #define CAM_USE_SUNRISE                     1
 
     //#define CAM_CHDK_HAS_EXT_VIDEO_TIME         1
 

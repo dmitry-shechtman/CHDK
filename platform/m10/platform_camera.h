@@ -25,8 +25,6 @@
     #define CAM_DISABLE_RAW_IN_HQ_BURST         1
     #define CAM_DISABLE_RAW_IN_HYBRID_AUTO      1
     #define CAM_DISABLE_RAW_IN_SPORTS           1
-
-    #define DNG_VERT_RLE_BADPIXELS              1
     #define CAM_AV_OVERRIDE_IRIS_FIX            1
     #undef CAM_HAS_ND_FILTER                             // Camera does not have built-in ND filter, obviously
     #undef  CAM_KEY_PRESS_DELAY
@@ -124,7 +122,6 @@
     #define DRAW_ON_ACTIVE_BITMAP_BUFFER_ONLY   1           // Draw pixels on active bitmap buffer only.
     //#undef  CAM_USES_ASPECT_CORRECTION
     //#define CAM_USES_ASPECT_CORRECTION          1
-    #define DRAW_ON_YUV_OVERLAY                 1
     #undef  CAM_BITMAP_WIDTH
     #undef  CAM_BITMAP_HEIGHT
     #undef  CAM_SCREEN_WIDTH
