@@ -2,6 +2,7 @@
 #include "platform.h"
 #include "core.h"
 #include "dryos31.h"
+#include "asmsafe.h"
 
 const char * const new_sa = &_end;
 
@@ -19,6 +20,13 @@ extern void task_InitFileModules();
 extern void task_RotaryEncoder();
 extern void task_MovieRecord();
 extern void task_ExpDrv();
+
+//----------------------------------------------------------------------
+// Pointer to stack location where jogdial task records previous and current
+// jogdial positions
+
+short *jog_position;
+
 
 // almost the same as SX30 / G12
 
@@ -136,13 +144,13 @@ void __attribute__((naked,noinline)) boot() {    //#fs
 
 
 void __attribute__((naked,noinline)) sub_FF810354_my() {    //#fs
+
     // Hook Canon Firmware Tasks, http://chdk.setepontos.com/index.php/topic,4194.0.html
-    // ToDo: verify all Hooks are working, is hooking to Software IRQ's required like other cameras?
     //*(int*)0x1930=(int)taskHook;               // does not work
-    //*(int*)0x1934=(int)taskHook;                 // 0x1934 not used in firmware
+    //*(int*)0x1934=(int)taskHook;               // 0x1934 not used in firmware
     *(int*)0x1938=(int)taskHook;                 // ROM:FF810698
     // 0x1938=taskHook and 0x193C=taskHook together cause ASSERT in SpyTask on CHDK autostart
-    *(int*)0x193C=(int)taskHook;               // ROM:FF8106D8
+    *(int*)0x193C=(int)taskHook;                 // ROM:FF8106D8
     //*(int*)0x19A0=(int)taskHook;               // maybe correct IRQ is 0x19A0 (ROM:FF816634) ?
 
     // Power Button detection (short press = playback mode, long press = record mode)
@@ -183,8 +191,8 @@ void __attribute__((naked,noinline)) sub_FF810354_my() {    //#fs
         //"BL      sub_FF811198\n"           // original
         "BL      sub_FF811198_my\n"          // +
 
-        // ToDo: shouldn't we continue with original function ?!? Most other Port does not...
-        //asm volatile ("B      sub_FF8103CC\n");
+        // Shouldn't we continue with original function ?!? Most other Port do not...
+        // asm volatile ("B      sub_FF8103CC\n");
     );
 }    //#fe
 
@@ -197,9 +205,8 @@ void __attribute__((naked,noinline)) sub_FF811198_my() { //#fs
         "BL      sub_FFB59A1C\n"
         "MOV     R0, #0x53000\n"
         "STR     R0, [SP,#4]\n"
-#if defined(CHDK_NOT_IN_CANON_HEAP)                 // use original heap offset since CHDK is loaded in high memory
+#if defined(CHDK_NOT_IN_CANON_HEAP)            // use original heap offset since CHDK is loaded in high memory
         "LDR     R0, =0x14B394\n"              // original
-                                               // ToDo: change address to put chdk into EXMEM
 #else                                          // otherwise use patched value
         "LDR     R0, =new_sa\n"                // +
         "LDR     R0, [R0]\n"                   // +
@@ -394,8 +401,13 @@ void __attribute__((naked,noinline)) JogDial_task_my() {
         "ADD     R3, SP, #0x18\n"
         "ADD     R10, SP, #0xC\n"
         "ADD     R8, SP, #0x10\n"
+
+        // Save pointer for kbd.c routine
+        "LDR     R3, =jog_position\n"
+        "STR     R8, [R3]\n"        
+        
         "MOV     R7, #0\n"
-        "loc_FF861B94:\n"
+    "loc_FF861B94:\n"
         "ADD     R3, SP, #0x18\n"
         "ADD     R12, R3, R0,LSL#1\n"
         "ADD     R2, SP, #0x14\n"
@@ -419,7 +431,7 @@ void __attribute__((naked,noinline)) JogDial_task_my() {
         "LDRNE   R0, =0xFF861E8C\n"          // compiler does not like ADRNE
         "BLNE    sub_FF81EB14\n"             // DebugAssert()
 
-        // disable JodDial Task in ALT mode
+        // disable JogDial Task in ALT mode
         // like G11
         //------------------  added code ---------------------
         "labelA:\n"
@@ -719,39 +731,26 @@ void __attribute__((naked,noinline)) sub_FF87134C_my() {    //#fs
         "CMP     R0, #7\n"
         "MOV     R6, #0\n"
         "ADDLS   PC, PC, R0,LSL#2\n"
-        "B       loc_FF8714A4\n"
-        "loc_FF871378:\n"
+        "B       loc_FF8714A4\n"// jumptable FF871370 entries 1-4,6,7
         "B       loc_FF8713B0\n"
-        "loc_FF87137C:\n"
-        //"B       loc_FF871398\n"
-        "B       sub_FF871398\n"
-        "loc_FF871380:\n"
-        //"B       loc_FF871398\n"
-        "B       sub_FF871398\n"
-        "loc_FF871384:\n"
-        //"B       loc_FF871398\n"
-        "B       sub_FF871398\n"
-        "loc_FF871388:\n"
-        //"B       loc_FF871398\n"
-        "B       sub_FF871398\n"
-        "loc_FF87138C:\n"
+        "B       loc_FF871398\n"
+        "B       loc_FF871398\n"
+        "B       loc_FF871398\n"
+        "B       loc_FF871398\n"
         "B       loc_FF87149C\n"
-        "loc_FF871390:\n"
-        //"B       loc_FF871398\n"
-        "B       sub_FF871398\n"
-        "loc_FF871394:\n"
-        //"B       loc_FF871398\n"             // jumptable FF871370 entries 1-4,6,7
-        "B       sub_FF871398\n"
+        "B       loc_FF871398\n"
+        "B       loc_FF871398\n"
+    "loc_FF871398:\n"
         "MOV     R2, #0\n"
         "MOV     R1, #0x200\n"
         "MOV     R0, #2\n"
         "BL      sub_FF889FD0\n"             // ExMem.AllocUncacheable()
         "MOVS    R4, R0\n"
         "BNE     loc_FF8713B8\n"
-        "loc_FF8713B0:\n"                        // jumptable FF871370 entry 0
+    "loc_FF8713B0:\n"                        // jumptable FF871370 entry 0
         "MOV     R0, #0\n"
         "LDMFD   SP!, {R4-R10,PC}\n"
-        "loc_FF8713B8:\n"
+    "loc_FF8713B8:\n"
         "LDR     R12, [R5,#0x50]\n"
         "MOV     R3, R4\n"
         "MOV     R2, #1\n"
@@ -763,14 +762,13 @@ void __attribute__((naked,noinline)) sub_FF87134C_my() {    //#fs
         "MOV     R0, #2\n"
         "BL      sub_FF88A11C\n"             // ExMemMan.c:0
         "B       loc_FF8713B0\n"
-        "loc_FF8713E4:\n"
+    "loc_FF8713E4:\n"
         "LDR     R1, [R5,#0x64]\n"
         "MOV     R0, R9\n"
         "BLX     R1\n"
 
         "MOV   R1, R4\n"                     // pointer to MBR in R1
         "BL    mbr_read_dryos\n"             // total sectors count in R0 before and after call
-
         // Start of DataGhost's FAT32 autodetection code
         // Policy: If there is a partition which has type W95 FAT32, use the first one of those for image storage
         // According to the code below, we can use R1, R2, R3 and R12.
@@ -780,12 +778,12 @@ void __attribute__((naked,noinline)) sub_FF87134C_my() {    //#fs
         "MOV     LR, R4\n"                     // Save old offset for MBR signature
         "MOV     R1, #1\n"                     // Note the current partition number
         "B       dg_sd_fat32_enter\n"          // We actually need to check the first partition as well, no increments yet!
-        "dg_sd_fat32:\n"
+    "dg_sd_fat32:\n"
         "CMP     R1, #4\n"                     // Did we already see the 4th partition?
         "BEQ     dg_sd_fat32_end\n"            // Yes, break. We didn't find anything, so don't change anything.
         "ADD     R12, R12, #0x10\n"            // Second partition
         "ADD     R1, R1, #1\n"                 // Second partition for the loop
-        "dg_sd_fat32_enter:\n"
+    "dg_sd_fat32_enter:\n"
         "LDRB    R2, [R12, #0x1BE]\n"          // Partition status
         "LDRB    R3, [R12, #0x1C2]\n"          // Partition type (FAT32 = 0xB)
         "CMP     R3, #0xB\n"                   // Is this a FAT32 partition?
@@ -797,7 +795,7 @@ void __attribute__((naked,noinline)) sub_FF87134C_my() {    //#fs
         "BNE     dg_sd_fat32\n"                // Invalid, go to next partition
         // This partition is valid, it's the first one, bingo!
         "MOV     R4, R12\n"                    // Move the new MBR offset for the partition detection.
-        "dg_sd_fat32_end:\n"
+    "dg_sd_fat32_end:\n"
         // End of DataGhost's FAT32 autodetection code
 
         "LDRB    R1, [R4,#0x1C9]\n"
@@ -838,9 +836,9 @@ void __attribute__((naked,noinline)) sub_FF87134C_my() {    //#fs
         "MOVEQ   R6, R3\n"
         "MOVEQ   R4, #1\n"
         "BEQ     loc_FF871474\n"
-        "loc_FF871470:\n"
+    "loc_FF871470:\n"
         "MOV     R4, R8\n"
-        "loc_FF871474:\n"
+    "loc_FF871474:\n"
         "MOV     R0, #2\n"
         "BL      sub_FF88A11C\n"             // ExMemMan.c:0
         "CMP     R4, #0\n"
@@ -851,15 +849,15 @@ void __attribute__((naked,noinline)) sub_FF87134C_my() {    //#fs
         "BLX     R1\n"
         "MOV     R6, R0\n"
         "B       loc_FF8714B0\n"
-        "loc_FF87149C:\n"                        // jumptable FF871370 entry 5
+    "loc_FF87149C:\n"                        // jumptable FF871370 entry 5
         "MOV     R6, #0x40\n"
         "B       loc_FF8714B0\n"
-        "loc_FF8714A4:\n"                        // jumptable FF871370 default entry
+    "loc_FF8714A4:\n"                        // jumptable FF871370 default entry
         "LDR     R1, =0x597\n"
         //"ADR     R0, aMounter_c\n"         // "Mounter.c"
         "LDR     R0, =0xFF8714C4\n"          // Compilter does not like ADR
         "BL      sub_FF81EB14\n"             // DebugAssert()
-        "loc_FF8714B0:\n"
+    "loc_FF8714B0:\n"
         "STR     R7, [R5,#0x44]!\n"
         "STMIB   R5, {R6,R8}\n"
         "MOV     R0, #1\n"
